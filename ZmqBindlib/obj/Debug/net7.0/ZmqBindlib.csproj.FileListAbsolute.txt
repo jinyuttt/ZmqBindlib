@@ -1,0 +1,12 @@
+E:\study\gg\ConsoleApp1\ZmqBindlib\bin\Debug\net7.0\ZmqBindlib.deps.json
+E:\study\gg\ConsoleApp1\ZmqBindlib\bin\Debug\net7.0\ZmqBindlib.dll
+E:\study\gg\ConsoleApp1\ZmqBindlib\bin\Debug\net7.0\ZmqBindlib.pdb
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ZmqBindlib.csproj.AssemblyReference.cache
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ZmqBindlib.GeneratedMSBuildEditorConfig.editorconfig
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ZmqBindlib.AssemblyInfoInputs.cache
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ZmqBindlib.AssemblyInfo.cs
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ZmqBindlib.csproj.CoreCompileInputs.cache
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ZmqBindlib.dll
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\refint\ZmqBindlib.dll
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ZmqBindlib.pdb
+E:\study\gg\ConsoleApp1\ZmqBindlib\obj\Debug\net7.0\ref\ZmqBindlib.dll
