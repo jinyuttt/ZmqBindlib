@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FddA9uTyWwlB3jMzgF8rPoiDxIK2rwG6xLf9HLH2A62/ch52VeXMoQBdOe6aZomKnkX5usCPC+Wd3+Hv5h/LBw==",
+  "dgSpecHash": "uWUR/179cEXxh7GsfnLcke+zWkEiCyuB3TC68190NEugFcoKOpxECjHUahXMtzVqE+Fy3kbvlL46Bh+GjDQfng==",
   "success": true,
-  "projectFilePath": "E:\\study\\gg\\ConsoleApp1\\ZmqBindlib\\ZmqBindlib.csproj",
+  "projectFilePath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\dell\\.nuget\\packages\\asyncio\\0.1.69\\asyncio.0.1.69.nupkg.sha512",
     "C:\\Users\\dell\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\5.0.0\\microsoft.bcl.asyncinterfaces.5.0.0.nupkg.sha512",

@@ -65,10 +65,7 @@ namespace ZmqBindlib
 
         }
      
-        private void process(object msg)
-        {
-            StringReceived(this, (string)msg);
-        }
+       
        
         public void Start()
         {

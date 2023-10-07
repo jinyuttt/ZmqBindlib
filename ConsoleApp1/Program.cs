@@ -34,14 +34,14 @@ namespace ConsoleApp1
            
             ZmqRequest request = new ZmqRequest();
             request.RemoteAddress = localaddes;
-            request.PubClient = "A";
+            request.Client = "A";
             int num = 0;
             while (true)
             {
                 //   Thread.Sleep(1000);
                 //string msg = request.Request("hi");
-                Person p=  request.Request<Person,Person>(new Person { Name = "jin", Description = "请求", Id = num++, Title = "rr" });
-                Console.WriteLine(p.Description+p.Name);
+               request.Request<Person,string>(new Person { Name = "jin", Description = "请求", Id = num++, Title = "rr" });
+               // Console.WriteLine(p.Description+p.Name);
             }
 
         }
@@ -50,17 +50,17 @@ namespace ConsoleApp1
          
 
          
-            ZmqRequest request = new ZmqRequest();
-            request.RemoteAddress = localaddes;
-            request.PubClient = "B";
-            int num = 0;
-            while (true)
-            {
-               //  Thread.Sleep(1000);
-                Person p = request.Request<Person, Person>(new Person { Name = "yu", Description = "请求", Id = num++, Title = "ss" });
-                // string msg = request.Request("hello");
-                Console.WriteLine(p.Description+p.Name);
-            }
+            //ZmqRequest request = new ZmqRequest();
+            //request.RemoteAddress = localaddes;
+            //request.PubClient = "B";
+            //int num = 0;
+            //while (true)
+            //{
+            //   //  Thread.Sleep(1000);
+            //    Person p = request.Request<Person, Person>(new Person { Name = "yu", Description = "请求", Id = num++, Title = "ss" });
+            //    // string msg = request.Request("hello");
+            //    Console.WriteLine(p.Description+p.Name);
+            //}
 
         }
 
@@ -80,14 +80,16 @@ namespace ConsoleApp1
             //rep.StringReceived += (sender, e) =>
             //{
             //    Console.WriteLine(e);
-            //    if(e=="hi")
+            //    if (e == "hi")
             //    {
             //        Thread.Sleep(1000);
             //    }
             //    rep.Response("word" + num++);
             //};
 
-             server=new EhoServer();
+            server =new EhoServer();
+            server.IsEmptyReturn = true;
+           // server.RouterAddress = "tcp://127.0.0.1:66666";//服务地址，请求的远端地址
             //  server.ByteReceived += Server_ByteReceived;
           // server.StringReceived += Server_StringReceived1; 
             server.Start();
@@ -101,7 +103,7 @@ namespace ConsoleApp1
             {
                 var ss = server.GetMsg<Person>();
                 ss.Message.Description = "回复"+ss.Message.Id;
-                ss.Response(ss.Message);
+                //ss.Response(ss.Message);
             }
         }
         private static void Server_StringReceived1(object? sender, RspSocket<string> e)
@@ -154,6 +156,7 @@ namespace ConsoleApp1
         {
             ZmqPublisher pub = new ZmqPublisher();
             pub.LocalAddress =localaddes;
+           // pub.IsProxy = true; 是否使用中间代理
             int num = 0;
             while (true)
             {
@@ -163,6 +166,12 @@ namespace ConsoleApp1
 
         
 
+        }
+        static void Proxy()
+        {
+            ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:7771";//注意，客户端订阅此地址
+            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:7772";//客户端发布此地址
+            ZmqDDSProxy.Start();
         }
     }
 }

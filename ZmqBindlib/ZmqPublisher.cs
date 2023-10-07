@@ -25,6 +25,12 @@ namespace ZmqBindlib
         /// </summary>
         public bool IsProxy { get; set; } = false;
 
+        /// <summary>
+        /// 发布数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="topic"></param>
+        /// <param name="message"></param>
         public void Publish<T>(string topic, T message)
         {
             if (publisherSocket == null)

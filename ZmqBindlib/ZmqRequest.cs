@@ -19,7 +19,7 @@ namespace ZmqBindlib
         /// <summary>
         /// 标识
         /// </summary>
-        public string? PubClient { get; set; } = string.Empty;
+        public string? Client { get; set; } = string.Empty;
 
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace ZmqBindlib
             using (var client = new RequestSocket(RemoteAddress))  // connect
             { 
                 // Send a message from the client socket
-                client.SendMoreFrame(PubClient).SendFrame(msg);
+                client.SendMoreFrame(Client).SendFrame(msg);
                 return client.ReceiveFrameString();
             
             }
@@ -50,9 +50,9 @@ namespace ZmqBindlib
 
             using (var client = new RequestSocket(RemoteAddress))  // connect
             {
-                client.Options.Identity = System.Text.Encoding.UTF8.GetBytes(PubClient);
+                client.Options.Identity = System.Text.Encoding.UTF8.GetBytes(Client);
                 // Send a message from the client socket
-                client.SendMoreFrame(PubClient).SendFrame(msg);
+                client.SendMoreFrame(Client).SendFrame(msg);
                 return client.ReceiveFrameBytes();
 
             }
@@ -65,14 +65,18 @@ namespace ZmqBindlib
         /// <typeparam name="T"></typeparam>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public T Request<S,T>(S  msg)
+        public T Request<R,T>(R  msg)
         {
             using (var client = new RequestSocket(RemoteAddress))  // connect
             {
               
                 var  obj= Util.JSONSerializeObject(msg);
-                client.SendMoreFrame(PubClient).SendFrame(obj);
+                client.SendMoreFrame(Client).SendFrame(obj);
                 var rsp= client.ReceiveFrameString();
+                if(typeof(T) == typeof(string))
+                {
+                    return (T)Convert.ChangeType(rsp, typeof(T));
+                }
                 var result= Util.JSONDeserializeObject<T>(rsp);
                 return result;
             }
@@ -82,11 +86,11 @@ namespace ZmqBindlib
         /// <summary>
         /// 长连接请求
         /// </summary>
-        /// <typeparam name="S"></typeparam>
+        /// <typeparam name="R"></typeparam>
         /// <typeparam name="T"></typeparam>
         /// <param name="msg"></param>
         /// <returns></returns>
-        public T KeepRequest<S, T>(S msg)
+        public T KeepRequest<R, T>(R msg)
         {
             if (requestSocket == null)
             {
@@ -96,12 +100,16 @@ namespace ZmqBindlib
                 requestSocket.Options.HeartbeatInterval = new TimeSpan(10000);
                 requestSocket.Options.HeartbeatTimeout = new TimeSpan(1000);
                 requestSocket.Options.HeartbeatTtl = new TimeSpan(2000);
-                requestSocket.Options.Identity = System.Text.Encoding.UTF8.GetBytes(PubClient);
+              
             }
 
             var obj = Util.JSONSerializeObject(msg);
-            requestSocket.SendMoreFrame(PubClient).SendFrame(obj);
+            requestSocket.SendMoreFrame(Client).SendFrame(obj);
             var rsp = requestSocket.ReceiveFrameString();
+            if (typeof(T) == typeof(string))
+            {
+                return (T)Convert.ChangeType(rsp, typeof(T));
+            }
             var result = Util.JSONDeserializeObject<T>(rsp);
             return result;
         }

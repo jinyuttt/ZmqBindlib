@@ -7,7 +7,7 @@ namespace ZmqBindlib
     /// <summary>
     /// 订阅发布代理
     /// </summary>
-    internal class ZmqDDSProxy
+    public class ZmqDDSProxy
     {
         /// <summary>
         /// 订阅地址

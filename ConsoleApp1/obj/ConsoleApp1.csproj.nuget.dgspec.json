@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\study\\gg\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj": {}
+    "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\ConsoleApp1.csproj": {}
   },
   "projects": {
-    "E:\\study\\gg\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj": {
+    "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\ConsoleApp1.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\study\\gg\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
+        "projectUniqueName": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\ConsoleApp1.csproj",
         "projectName": "ConsoleApp1",
-        "projectPath": "E:\\study\\gg\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
+        "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\ConsoleApp1.csproj",
         "packagesPath": "C:\\Users\\dell\\.nuget\\packages\\",
-        "outputPath": "E:\\study\\gg\\ConsoleApp1\\ConsoleApp1\\obj\\",
+        "outputPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -33,8 +33,8 @@
           "net7.0": {
             "targetAlias": "net7.0",
             "projectReferences": {
-              "E:\\study\\gg\\ConsoleApp1\\ZmqBindlib\\ZmqBindlib.csproj": {
-                "projectPath": "E:\\study\\gg\\ConsoleApp1\\ZmqBindlib\\ZmqBindlib.csproj"
+              "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj": {
+                "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj"
               }
             }
           }
@@ -68,14 +68,14 @@
         }
       }
     },
-    "E:\\study\\gg\\ConsoleApp1\\ZmqBindlib\\ZmqBindlib.csproj": {
+    "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\study\\gg\\ConsoleApp1\\ZmqBindlib\\ZmqBindlib.csproj",
+        "projectUniqueName": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj",
         "projectName": "ZmqBindlib",
-        "projectPath": "E:\\study\\gg\\ConsoleApp1\\ZmqBindlib\\ZmqBindlib.csproj",
+        "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj",
         "packagesPath": "C:\\Users\\dell\\.nuget\\packages\\",
-        "outputPath": "E:\\study\\gg\\ConsoleApp1\\ZmqBindlib\\obj\\",
+        "outputPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
