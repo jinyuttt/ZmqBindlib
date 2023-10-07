@@ -11,6 +11,7 @@ namespace ZmqBindlib
     {
         const string resp = "ehoserver";
 
+        //收到的数据
         readonly BlockingCollection<RspSocket<string>> queue = new();
 
         /// <summary>
@@ -82,6 +83,9 @@ namespace ZmqBindlib
         /// </summary>
         public bool IsEmptyReturn { get; set; }= false;
 
+        /// <summary>
+        /// 启动
+        /// </summary>
         public  void Start()
         {
 
@@ -99,6 +103,7 @@ namespace ZmqBindlib
             ZmqProxy.DealerAddress = DealerAddress;
             ZmqProxy.RouterAddress = RouterAddress;
             ZmqProxy.Start();
+            Logger.Singleton.Info(string.Format("代理启动：RouterAddress:{0},DealerAddress:{1}", RouterAddress, DealerAddress));
         }
         
 
@@ -118,7 +123,7 @@ namespace ZmqBindlib
         /// </summary>
         private void  Check()
         {
-
+            curTikcs = DateTime.Now.Ticks;
             if (lstSockets.Count < 10)
             {
                 if (Interlocked.Increment(ref rspNum) < MaxProcessThreadNum)
@@ -127,7 +132,7 @@ namespace ZmqBindlib
                 }
             }
            
-            curTikcs = DateTime.Now.Ticks;
+            
         }
 
         /// <summary>
@@ -139,10 +144,11 @@ namespace ZmqBindlib
             {
                 Thread.Sleep(5000);
                 long ticks = DateTime.Now.Ticks - curTikcs;
-                long per = ticks / 10000 + 1;
+                long per = ticks / 10000000 + 1;
                 //使用频率
                 if (dicSocket.Count / per < 10)
                 {
+                    Logger.Singleton.Debug("清理空闲处理线程");
                     //空闲保留10
                     while (lstSockets.Count > 10)
                     {
@@ -162,6 +168,7 @@ namespace ZmqBindlib
                         eventSlims.TryTake(out var rsp);
                     }
                 }
+                Logger.Singleton.Info(string.Format("处理线程：{0}",rspNum));
             }
         }
 

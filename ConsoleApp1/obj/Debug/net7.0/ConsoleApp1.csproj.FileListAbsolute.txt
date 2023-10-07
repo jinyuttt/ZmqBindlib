@@ -98,3 +98,15 @@ E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\obj\Debug\net7.0\refint\Cons
 E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\obj\Debug\net7.0\ConsoleApp1.pdb
 E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\obj\Debug\net7.0\ConsoleApp1.genruntimeconfig.cache
 E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\obj\Debug\net7.0\ref\ConsoleApp1.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Configuration.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Abstractions.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Configuration.Binder.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.DependencyInjection.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Logging.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Logging.Abstractions.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Logging.Configuration.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Logging.Console.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Options.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Options.ConfigurationExtensions.dll
+E:\study\新建文件夹 (2)\ZmqBindlib\ConsoleApp1\bin\Debug\net7.0\Microsoft.Extensions.Primitives.dll

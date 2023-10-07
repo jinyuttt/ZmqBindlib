@@ -20,11 +20,11 @@ namespace ConsoleApp1
         static void Req()
         {
             Thread thread = new Thread(Req1);
-
+            thread.Name = "REq1";
             thread.Start();
 
             Thread thread1 = new Thread(Req2);
-
+            thread1.Name = "REq2";
             thread1.Start();
 
 
@@ -40,27 +40,27 @@ namespace ConsoleApp1
             {
                 //   Thread.Sleep(1000);
                 //string msg = request.Request("hi");
-               request.Request<Person,string>(new Person { Name = "jin", Description = "请求", Id = num++, Title = "rr" });
-               // Console.WriteLine(p.Description+p.Name);
+              var p= request.Request<Person,Person>(new Person { Name = "jin", Description = "请求", Id = num++, Title = "rr" });
+                Console.WriteLine(p.Description+p.Name);
             }
 
         }
         static void Req2()
         {
-         
 
-         
-            //ZmqRequest request = new ZmqRequest();
-            //request.RemoteAddress = localaddes;
-            //request.PubClient = "B";
-            //int num = 0;
-            //while (true)
-            //{
-            //   //  Thread.Sleep(1000);
-            //    Person p = request.Request<Person, Person>(new Person { Name = "yu", Description = "请求", Id = num++, Title = "ss" });
-            //    // string msg = request.Request("hello");
-            //    Console.WriteLine(p.Description+p.Name);
-            //}
+
+
+            ZmqRequest request = new ZmqRequest();
+            request.RemoteAddress = localaddes;
+            request.Client = "B";
+            int num = 0;
+            while (true)
+            {
+                //  Thread.Sleep(1000);
+                Person p = request.Request<Person, Person>(new Person { Name = "yu", Description = "请求", Id = num++, Title = "ss" });
+                // string msg = request.Request("hello");
+                Console.WriteLine(p.Description + p.Name);
+            }
 
         }
 
@@ -88,7 +88,7 @@ namespace ConsoleApp1
             //};
 
             server =new EhoServer();
-            server.IsEmptyReturn = true;
+           // server.IsEmptyReturn = true;
            // server.RouterAddress = "tcp://127.0.0.1:66666";//服务地址，请求的远端地址
             //  server.ByteReceived += Server_ByteReceived;
           // server.StringReceived += Server_StringReceived1; 
@@ -103,7 +103,7 @@ namespace ConsoleApp1
             {
                 var ss = server.GetMsg<Person>();
                 ss.Message.Description = "回复"+ss.Message.Id;
-                //ss.Response(ss.Message);
+                ss.Response(ss.Message);
             }
         }
         private static void Server_StringReceived1(object? sender, RspSocket<string> e)
