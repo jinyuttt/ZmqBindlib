@@ -12,7 +12,7 @@ using System;
 * Copyright (c) jinyu  
 */
 
-namespace ZmqBindlib
+namespace MQBindlib
 {
     /// <summary>
     /// 功能描述    ：Logger  

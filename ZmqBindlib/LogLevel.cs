@@ -17,7 +17,7 @@
 #endregion
 
 
-namespace ZmqBindlib
+namespace MQBindlib
 {
 
     /* ============================================================================== 

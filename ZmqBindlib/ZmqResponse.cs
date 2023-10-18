@@ -2,7 +2,7 @@
 using NetMQ.Sockets;
 using System.Collections.Concurrent;
 
-namespace ZmqBindlib
+namespace MQBindlib
 {
 
     /// <summary>

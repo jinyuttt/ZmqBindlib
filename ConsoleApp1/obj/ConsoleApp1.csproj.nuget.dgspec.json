@@ -10,14 +10,14 @@
         "projectUniqueName": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\ConsoleApp1.csproj",
         "projectName": "ConsoleApp1",
         "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\ConsoleApp1.csproj",
-        "packagesPath": "C:\\Users\\dell\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\jinyu\\.nuget\\packages\\",
         "outputPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ConsoleApp1\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\dell\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\jinyu\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -33,8 +33,8 @@
           "net7.0": {
             "targetAlias": "net7.0",
             "projectReferences": {
-              "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj": {
-                "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj"
+              "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\MQBindlib.csproj": {
+                "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\MQBindlib.csproj"
               }
             }
           }
@@ -64,24 +64,24 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.307\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj": {
+    "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\MQBindlib.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj",
-        "projectName": "ZmqBindlib",
-        "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\ZmqBindlib.csproj",
-        "packagesPath": "C:\\Users\\dell\\.nuget\\packages\\",
+        "projectUniqueName": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\MQBindlib.csproj",
+        "projectName": "MQBindlib",
+        "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\MQBindlib.csproj",
+        "packagesPath": "C:\\Users\\jinyu\\.nuget\\packages\\",
         "outputPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\dell\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\jinyu\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -109,6 +109,10 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "dependencies": {
+            "Confluent.Kafka": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
             "Microsoft.Extensions.Logging.Console": {
               "target": "Package",
               "version": "[7.0.0, )"
@@ -134,7 +138,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.307\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
         }
       }
     }

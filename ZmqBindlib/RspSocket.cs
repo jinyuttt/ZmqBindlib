@@ -1,7 +1,7 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
 
-namespace ZmqBindlib
+namespace MQBindlib
 {
     /// <summary>
     /// 返回结构

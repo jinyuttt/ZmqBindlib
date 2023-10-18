@@ -1,8 +1,10 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
 using System.Collections.Concurrent;
+using System.Text;
 
-namespace ZmqBindlib
+
+namespace MQBindlib
 {
     /// <summary>
     /// 处理服务
@@ -84,15 +86,39 @@ namespace ZmqBindlib
         public bool IsEmptyReturn { get; set; }= false;
 
         /// <summary>
+        /// 是否是集群
+        /// </summary>
+        public  bool IsCluster { get; set; } = false;
+
+        /// <summary>
+        /// 集群名称
+        /// </summary>
+        public string ClusterName { get; set; } = "ehoserver";
+
+
+        /// <summary>
+        /// 集群ID
+        /// </summary>
+        public string ClusterId { get; set; } = string.Empty;
+
+
+        public bool IsClusterMaster {  get; set; } = false;
+
+      private string serverid=string.Empty;
+
+        private bool IsRun = true;
+
+        /// <summary>
         /// 启动
         /// </summary>
         public  void Start()
         {
-
+            
             REPProxy();
             Thread.Sleep(1000);//让代理线启动，进程内通讯先要绑定地址
             Check();
             Flush();
+            RspCluster();
         }
 
         /// <summary>
@@ -102,20 +128,81 @@ namespace ZmqBindlib
         {
             ZmqProxy.DealerAddress = DealerAddress;
             ZmqProxy.RouterAddress = RouterAddress;
-            ZmqProxy.Start();
+            serverid=Util.GuidToLongID().ToString();
+            ZmqProxy.Start(serverid);
             Logger.Singleton.Info(string.Format("代理启动：RouterAddress:{0},DealerAddress:{1}", RouterAddress, DealerAddress));
         }
         
+        private void RspCluster()
+        {
+            if(!IsCluster)
+            {
+                return;
+            }
+            if (ClusterId == string.Empty)
+            {
+                ClusterId = Util.GuidToLongID().ToString();
+            }
+            Cluster.Remove();
+            ZmqBus zmqBus = new ZmqBus();
+            Cluster.bus = zmqBus;
+            ClusterNode node = new ClusterNode()
+            {
+                Name = ClusterName,
+                Id = ClusterId,
+                Address = RouterAddress,
+                NodeType = NodeType.Request,
+                 IsClusterMaster = IsClusterMaster,
+            };
+          
+            zmqBus.Subscribe(ConstString.ReqCluster);
+            zmqBus.Subscribe(ConstString.UpdateCluster);
+            zmqBus.StringReceived += ZmqBus_StringReceived;
+           
+            Thread nodeTh = new Thread(p =>
+            {
+                ZmqBus tmp= new ZmqBus();
+                tmp.Publish(ConstString.ReqCluster, node);
+                while (IsRun)
+                {
+                    Thread.Sleep(5000);
+                    tmp.Publish(ConstString.ReqCluster, node);
+                }
+               //退出后注销
+             zmqBus.StringReceived -= ZmqBus_StringReceived;
+            }
+            );
+            nodeTh.Start();
+        }
 
+        private void ZmqBus_StringReceived(string arg1, string arg2)
+        {
+            if (arg1 == ConstString.ReqCluster)
+            {
+                var obj = Util.JSONDeserializeObject<ClusterNode>(arg2);
+                if (obj != null && obj.NodeType == NodeType.Request)
+                {
+                    //只使用同一类型的
+                    Cluster.Add(obj);
+                    Cluster.Flush(obj.Id);
+                }
+            }
+            if(arg1 == ConstString.UpdateCluster)
+            {
+                Cluster.UPdateMaster(ClusterId);
+            }
+          
+        }
+
+        /// <summary>
+        /// 移除Rsp
+        /// </summary>
         private void Flush()
         {
-         
-
                 Thread thread = new Thread(Remove);
                 thread.Name = "removeRsp";
                 thread.IsBackground = true;
                 thread.Start();
-            
         }
 
         /// <summary>
@@ -140,7 +227,7 @@ namespace ZmqBindlib
         /// </summary>
         private void Remove()
         {
-            while (true)
+            while (IsRun)
             {
                 Thread.Sleep(5000);
                 long ticks = DateTime.Now.Ticks - curTikcs;
@@ -180,7 +267,7 @@ namespace ZmqBindlib
            var server = new ResponseSocket();
             server.Options.Linger = new TimeSpan(10000);
             server.Connect(DealerAddress);
-            while (true)
+            while (IsRun)
             {
                 try
                 {
@@ -193,6 +280,15 @@ namespace ZmqBindlib
                     if (ByteReceived != null)
                     {
                         var bytes = server.ReceiveFrameBytes();
+                        if(bytes != null)
+                        {
+                           var data=  Encoding.UTF8.GetString(bytes);
+
+                            if (RspCluster(server,data))
+                            {
+                                continue;
+                            }
+                        }
                         var rsp = new RspSocket<byte[]> { Message = bytes, responseSocket = server, key = key, ehoServer = this, Client=client };
 
                         ByteReceived(this, rsp);
@@ -201,6 +297,10 @@ namespace ZmqBindlib
                     else if (StringReceived != null)
                     {
                         var msg = server.ReceiveFrameString();
+                        if (RspCluster(server, msg))
+                        {
+                            continue;
+                        }
                         var rsp = new RspSocket<string> { Message = msg, responseSocket = server, key = key, ehoServer = this, Client = client };
 
                         StringReceived(this, rsp);
@@ -215,6 +315,10 @@ namespace ZmqBindlib
                         {
                             resetEventSlim.Reset();
                             var msg = server.ReceiveFrameString();
+                            if (RspCluster(server, msg))
+                            {
+                                continue;
+                            }
                             var rsp = new RspSocket<string>() { responseSocket = server, Message = msg, key = key, Client = client };
                             dicManualResetEvent[key] = resetEventSlim;
                             queue.Add(rsp);
@@ -250,6 +354,21 @@ namespace ZmqBindlib
 
         }
         
+
+        private bool RspCluster(ResponseSocket rsp,string data)
+        {
+            if (IsCluster)
+            {
+                if (ConstString.ReqCluster == data)
+                {
+                    var r = Util.JSONSerializeObject(Cluster.GetNodes(ClusterName,NodeType.Request));
+                    rsp.SendFrame(r);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// 获取接收的数据
         /// </summary>
@@ -262,6 +381,20 @@ namespace ZmqBindlib
             return new RspSocket<T>() { Message = obj,responseSocket=result.responseSocket, ehoServer = this, key=result.key, Client=result.Client };
         }
 
+
+        public void Close()
+        {
+            ZmqProxy.Close(serverid);
+            IsRun = false;
+            dicManualResetEvent.Clear();
+            foreach(var kv in dicSocket)
+            {
+                kv.Value.Close();
+
+            }
+            lstSockets.ForEach(x => x.Close());
+            eventSlims.Clear();
+        }
         /// <summary>
         /// 回复数据
         /// </summary>
@@ -283,5 +416,7 @@ namespace ZmqBindlib
 
             }
         }
+   
+    
     }
 }

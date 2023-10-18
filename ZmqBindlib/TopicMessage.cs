@@ -1,4 +1,4 @@
-﻿namespace ZmqBindlib
+﻿namespace MQBindlib
 {
     internal class InerTopicMessage
     {

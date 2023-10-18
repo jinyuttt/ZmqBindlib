@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33927.249
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{EAABCDBB-E4C0-45D3-B17F-990D4CC6B2F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{EAABCDBB-E4C0-45D3-B17F-990D4CC6B2F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZmqBindlib", "ZmqBindlib\ZmqBindlib.csproj", "{CBE11ACA-34D7-4A9A-B8BD-AC778C26CDA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MQBindlib", "ZmqBindlib\MQBindlib.csproj", "{CBE11ACA-34D7-4A9A-B8BD-AC778C26CDA4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

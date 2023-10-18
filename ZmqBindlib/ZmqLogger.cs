@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
 
-namespace ZmqBindlib
+namespace MQBindlib
 {
     /// <summary>
     /// 日志封装类

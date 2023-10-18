@@ -1,7 +1,7 @@
 ﻿using NetMQ.Sockets;
 using NetMQ;
 
-namespace ZmqBindlib
+namespace MQBindlib
 {
 
     /// <summary>
@@ -13,21 +13,30 @@ namespace ZmqBindlib
 
         public static string? RouterAddress { get; set; }
 
-        /// <summary>
-        /// 启动代理
-        /// </summary>
-        public static void Start()
-        {
-            Thread thread = new Thread(REPProxy);
-            thread.Name = "ZmqProxy";
-            thread.IsBackground = true;
-            thread.Start();
-        }
+        public static Dictionary<string,Proxy> dic=new Dictionary<string,Proxy>();
+
+        //private static RouterSocket routerAllSocket = null;
+
+        //private static DealerSocket dealerAllSocket = null;
 
         /// <summary>
         /// 启动代理
         /// </summary>
-        private static void REPProxy()
+        public static void Start(string key)
+        {
+            Thread thread = new Thread(REPProxy);
+            thread.Name = "ZmqProxy";
+            thread.IsBackground = true;
+            thread.Start(key);
+           // RspCluster();
+        }
+
+       
+
+        /// <summary>
+        /// 启动代理
+        /// </summary>
+        private static void REPProxy(object key)
         {
             var routSocket = new RouterSocket();
             routSocket.Options.ReceiveHighWatermark = 0;
@@ -38,14 +47,44 @@ namespace ZmqBindlib
             dealSocket.Options.SendHighWatermark = 0;
             dealSocket.Options.ReceiveHighWatermark  = 0;
             dealSocket.Bind(DealerAddress);
-
-            var pubSocket = new PublisherSocket();
+          //  dealerAllSocket = dealSocket;
+          ////  var pubSocket = new PublisherSocket("inproc://ZMP");
+          //  routerAllSocket = routSocket;
             Console.WriteLine("Intermediary started, and waiting for messages");
                 // proxy messages between frontend / backend
-                var proxy = new Proxy(routSocket, dealSocket, pubSocket);
-                // blocks indefinitely
+                var proxy = new Proxy(routSocket, dealSocket, null);
+            // blocks indefinitely
+            if (key == null)
+            {
+                key = Util.GuidToLongID().ToString();
+            }
+
+            dic[key.ToString()] = proxy;
                 proxy.Start();
+            routSocket.Close();
+            dealSocket.Close();
             Console.WriteLine("Intermediary started, and waiting for messages");
         }
+
+        public static void Close(string key)
+        {
+            if(key!=null)
+            {
+                if(dic.TryGetValue(key.ToString(), out var proxy))
+                {
+                    proxy.Stop();
+                }
+
+            }
+            else if(dic.Count==0)
+            {
+               foreach(var kv in dic)
+                {
+                    kv.Value.Stop();
+                }
+            }
+
+        }
+      
     }
 }
