@@ -2169,11 +2169,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\MqBindlib.csproj",
-      "projectName": "MqBindlib",
-      "projectPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\MqBindlib.csproj",
+      "projectUniqueName": "E:\\study\\新建文件夹 (2)\\ddd\\ZmqBindlib\\ZmqBindlib\\MQBindlib.csproj",
+      "projectName": "MQBindlib",
+      "projectPath": "E:\\study\\新建文件夹 (2)\\ddd\\ZmqBindlib\\ZmqBindlib\\MQBindlib.csproj",
       "packagesPath": "C:\\Users\\jinyu\\.nuget\\packages\\",
-      "outputPath": "E:\\study\\新建文件夹 (2)\\ZmqBindlib\\ZmqBindlib\\obj\\",
+      "outputPath": "E:\\study\\新建文件夹 (2)\\ddd\\ZmqBindlib\\ZmqBindlib\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
