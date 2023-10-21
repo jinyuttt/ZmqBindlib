@@ -107,6 +107,124 @@ zmq常用封装
 		````````````
 		
 		--------------------------
+## 中心高可用部署
+1.推荐方式
+  使用IP漂移：
+  1. windows  
+     使用DNS+VLS；Panguha软件
+  2.Linux
+     使用keppalive
+
+2.使用封装
+  该功能前提是可以使用广播，可以允许少量数据丢失；
+  （1）请求返回模式
+      中心：
+
+`````` `````
+          EhoServer eho = new EhoServer();
+            eho.IsCluster = true;
+            eho.DealerAddress = "inproc://server";
+            eho.RouterAddress = "tcp://127.0.0.1:5550";
+
+            eho.StringReceived += EhoServer_StringReceived;
+            eho.Start();
+
+          `````  `````
+    客户端：与单个一致
+
+    （2）订阅发布
+
+    中心：
+
+    ```````
+      ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:2222";
+            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:4444";
+            ZmqDDSProxy.IsCluster=true;
+         ZmqDDSProxy.Start();
+
+            ````````
+    发布端：
+
+       ``````
+            ZmqPublisher pub = new ZmqPublisher();
+            pub.Address = "tcp://127.0.0.1:5678";
+            pub.IsProxy = true; //是否使用中间代理
+            pub.IsDDS = true;//高可用启动
+            int num = 0;
+            while (true)
+            {
+                Thread.Sleep(1000);
+                try
+                {
+                    pub.Publish("A", "ssss" + num++);
+                }catch(Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
+
+            }
+
+
+            ```````
+
+            订阅端：
+
+            ``````
+              ZmqSubscriber sub = new ZmqSubscriber();
+            sub.Address = new string[] { "tcp://127.0.0.1:1234" };
+            sub.IsDDS = true;//高可用启动
+            sub.Subscribe("");
+           // sub.ByteReceived += Sub_ByteReceived;
+            sub.StringReceived += Sub_StringReceived;
+
+            ``````
+            对于发布订阅，中心何发布订阅端都需要启动高可用，会刷新地址
+
+            （3）负载均衡式订阅发布
+             该模式是仿照kafka功能的；
+             中心：
+             ````````
+               ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:2222";
+            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:4444";
+            ZmqDDSProxy.IsCluster = true;//高可用
+            ZmqDDSProxy.StartProxy(); //注意方法，启动和另外发布订阅方法不同
+
+            `````
+            发布端：和前面一样
+
+            订阅端：
+            ````````
+           ZmqSubscriberGroup zmqSubscriber=new ZmqSubscriberGroup();
+            zmqSubscriber.Address = "tcp://127.0.0.1:1234";
+            zmqSubscriber.IsDDS= true;//高可用
+           // zmqSubscriber.Indenty = "test";//订阅在不同分组
+            zmqSubscriber.Subscribe("A");
+            zmqSubscriber.StringReceived += ZmqSubscriber_StringReceived;
+            ``````
+            (4)kafka封装
+            ```````
+             KafkaPublisher kafkaPublisher = new KafkaPublisher();
+                int num = 0;
+                while (true)
+                {
+                    Thread.Sleep(1000);
+                    kafkaPublisher.Push("A", "SSSSS"+num++);
+                }
+                ``````
+                `````````
+                KafkaSubscriber  kafkaSubscriber = new KafkaSubscriber();
+                kafkaSubscriber.Subscriber("A");
+                kafkaSubscriber.Consume(p =>
+                {
+                    if(p==null)
+                    {
+                        return;
+                    }
+                    Console.WriteLine(string.Format("Received message at {0}:{1}", p.Topic, p.Value));
+                
+                });
+                ``````````
+
 		说明
 		1.接收数据一端，定义了2个事件一个方法，顺序是ByteReceived、StringReceived、GetMsg<T>()方法。一旦前一个实现，后面就无效
 

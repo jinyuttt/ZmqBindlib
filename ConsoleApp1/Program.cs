@@ -53,7 +53,8 @@ namespace ConsoleApp1
         {
             ZmqSubscriberGroup zmqSubscriber=new ZmqSubscriberGroup();
             zmqSubscriber.Address = "tcp://127.0.0.1:1234";
-            zmqSubscriber.IsDDS= true;
+            zmqSubscriber.IsDDS= true;//高可用
+           // zmqSubscriber.Indenty = "test";//订阅在不同分组
             zmqSubscriber.Subscribe("A");
             zmqSubscriber.StringReceived += ZmqSubscriber_StringReceived;
         }
@@ -67,8 +68,8 @@ namespace ConsoleApp1
         {
             ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:2222";
             ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:4444";
-            ZmqDDSProxy.IsCluster = true;
-            ZmqDDSProxy.StartProxy(); 
+            ZmqDDSProxy.IsCluster = true;//高可用
+            ZmqDDSProxy.StartProxy(); //注意方法，启动和另外发布订阅方法不同
         }
         static void TestClusterPUb()
         {
@@ -254,7 +255,7 @@ namespace ConsoleApp1
         {
             ZmqSubscriber sub = new ZmqSubscriber();
             sub.Address = new string[] { "tcp://127.0.0.1:1234" };
-            sub.IsDDS = true;
+            sub.IsDDS = true;//高可用启动
             sub.Subscribe("");
            // sub.ByteReceived += Sub_ByteReceived;
             sub.StringReceived += Sub_StringReceived;
@@ -275,7 +276,7 @@ namespace ConsoleApp1
             ZmqPublisher pub = new ZmqPublisher();
             pub.Address = "tcp://127.0.0.1:5678";
             pub.IsProxy = true; //是否使用中间代理
-            pub.IsDDS = true;
+            pub.IsDDS = true;//高可用启动
             int num = 0;
             while (true)
             {
