@@ -224,4 +224,5 @@ zmq常用封装
 
 		说明
 		1.接收数据一端，定义了2个事件一个方法，顺序是ByteReceived、StringReceived、GetMsg<T>()方法。一旦前一个实现，后面就无效
+        2.pull模式订阅增加了数据存储
 
