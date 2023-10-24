@@ -35,11 +35,11 @@ namespace ConsoleApp1
             //  Req();
             // DDProxy();
             //  TestClusterPUb();
+           // TestClusterSub();
             TestClusterSub();
-            // TestClusterSub();
             /// Sub();
             TestSub();
-            pub();
+           pub();
             // TestPub();
             //  TestSub();
           
@@ -54,6 +54,7 @@ namespace ConsoleApp1
             ZmqSubscriberGroup zmqSubscriber=new ZmqSubscriberGroup();
             zmqSubscriber.Address = "tcp://127.0.0.1:1234";
             zmqSubscriber.IsDDS= true;//高可用
+            zmqSubscriber.DataOffset = DataModel.Earliest;
            // zmqSubscriber.Indenty = "test";//订阅在不同分组
             zmqSubscriber.Subscribe("A");
             zmqSubscriber.StringReceived += ZmqSubscriber_StringReceived;
@@ -66,9 +67,10 @@ namespace ConsoleApp1
 
         static void TestClusterSub()
         {
-            ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:2222";
-            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:4444";
+            ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:1234";
+            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:5678";
             ZmqDDSProxy.IsCluster = true;//高可用
+            ZmqDDSProxy.IsStorage = true;
             ZmqDDSProxy.StartProxy(); //注意方法，启动和另外发布订阅方法不同
         }
         static void TestClusterPUb()

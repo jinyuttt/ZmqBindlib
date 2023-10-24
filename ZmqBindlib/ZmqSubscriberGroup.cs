@@ -30,6 +30,14 @@ namespace MQBindlib
 
         public string Indenty { get; set; } = "mqbindlib";
 
+        /// <summary>
+        /// 获取数据
+        /// </summary>
+        public DataModel DataOffset=DataModel.Latest;
+
+        /// <summary>
+        /// 有高可用部署
+        /// </summary>
         public bool IsDDS { get; set; }
 
         private bool IsConnected = true;
@@ -41,7 +49,9 @@ namespace MQBindlib
 
         private readonly TimeSpan m_deadNodeTimeout = TimeSpan.FromSeconds(10);
 
-       
+      /// <summary>
+      /// 更新数据和中心
+      /// </summary>
         private void Update()
         {
             Thread up = new Thread(p =>
@@ -185,6 +195,11 @@ namespace MQBindlib
             }
 
         }
+       
+        /// <summary>
+        /// 订阅主题
+        /// </summary>
+        /// <param name="topic"></param>
         public void Subscribe(string topic)
         {
             lst.Remove(topic); 
@@ -195,7 +210,7 @@ namespace MQBindlib
             using(var socket = new RequestSocket(Address))
             {
            
-                socket.SendMoreFrame(topic).SendFrame(Indenty);
+                socket.SendMoreFrame(topic).SendMoreFrame(Indenty).SendFrame(DataOffset.ToString());
                 var rsp= socket.ReceiveFrameString();
                 if (rsp != null)
                 {

@@ -163,6 +163,14 @@
           }
         }
       },
+      "LiteDB/5.0.17": {
+        "runtime": {
+          "lib/netstandard2.0/LiteDB.dll": {
+            "assemblyVersion": "5.0.17.0",
+            "fileVersion": "5.0.17.0"
+          }
+        }
+      },
       "Microsoft.Bcl.AsyncInterfaces/5.0.0": {
         "runtime": {
           "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
@@ -551,6 +559,7 @@
       "MQBindlib/1.0.0": {
         "dependencies": {
           "Confluent.Kafka": "2.2.0",
+          "LiteDB": "5.0.17",
           "Microsoft.Extensions.Logging.Console": "7.0.0",
           "NetMQ": "4.0.1.13"
         },
@@ -586,6 +595,13 @@
       "sha512": "sha512-CYFfzEwDOWGlx1k2kWbIazLitixnko9bhzukVwR9xuG57Y+QlyQhbMEplW9MAhFmrpx2WBXN4o5V/FE29h1x1Q==",
       "path": "librdkafka.redist/2.2.0",
       "hashPath": "librdkafka.redist.2.2.0.nupkg.sha512"
+    },
+    "LiteDB/5.0.17": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-cKPvkdlzIts3ZKu/BzoIc/Y71e4VFKlij4LyioPFATZMot+wB7EAm1FFbZSJez6coJmQUoIg/3yHE1MMU+zOdg==",
+      "path": "litedb/5.0.17",
+      "hashPath": "litedb.5.0.17.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/5.0.0": {
       "type": "package",

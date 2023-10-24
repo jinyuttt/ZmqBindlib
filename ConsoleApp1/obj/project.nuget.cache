@@ -1,12 +1,13 @@
 {
   "version": 2,
-  "dgSpecHash": "hHuRM0E/AncdtMdEUB5Lq2hgvkUfJMfsYLwn3AJgXcUd645mDSTnCS8gUGoCVzXawxyye3Zawi/t0+gfv1Zzkg==",
+  "dgSpecHash": "9s9q8WAZLDS/sN8qBkfiFXP6mxw4N8/Q/rGfRoC2q321SF4hlqp5lEigHkgL3IHcSOv+/N4E+Q9n0eI4Kdhh2w==",
   "success": true,
   "projectFilePath": "E:\\study\\新建文件夹 (2)\\ddd\\ZmqBindlib\\ConsoleApp1\\ConsoleApp1.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\jinyu\\.nuget\\packages\\asyncio\\0.1.69\\asyncio.0.1.69.nupkg.sha512",
     "C:\\Users\\jinyu\\.nuget\\packages\\confluent.kafka\\2.2.0\\confluent.kafka.2.2.0.nupkg.sha512",
     "C:\\Users\\jinyu\\.nuget\\packages\\librdkafka.redist\\2.2.0\\librdkafka.redist.2.2.0.nupkg.sha512",
+    "C:\\Users\\jinyu\\.nuget\\packages\\litedb\\5.0.17\\litedb.5.0.17.nupkg.sha512",
     "C:\\Users\\jinyu\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\5.0.0\\microsoft.bcl.asyncinterfaces.5.0.0.nupkg.sha512",
     "C:\\Users\\jinyu\\.nuget\\packages\\microsoft.extensions.configuration\\7.0.0\\microsoft.extensions.configuration.7.0.0.nupkg.sha512",
     "C:\\Users\\jinyu\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\7.0.0\\microsoft.extensions.configuration.abstractions.7.0.0.nupkg.sha512",

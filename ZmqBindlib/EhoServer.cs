@@ -101,9 +101,14 @@ namespace MQBindlib
         /// </summary>
         public string ClusterId { get; set; } = string.Empty;
 
-
+        /// <summary>
+        /// 指定主节点
+        /// </summary>
         public bool IsClusterMaster {  get; set; } = false;
 
+        /// <summary>
+        /// 服务ID
+        /// </summary>
       private string serverid=string.Empty;
 
         private bool IsRun = true;
@@ -132,10 +137,13 @@ namespace MQBindlib
             ZmqProxy.Start(serverid);
             Logger.Singleton.Info(string.Format("代理启动：RouterAddress:{0},DealerAddress:{1}", RouterAddress, DealerAddress));
         }
-        
+
+        /// <summary>
+        /// 处理高可用
+        /// </summary>
         private void RspCluster()
         {
-            if(!IsCluster)
+            if (!IsCluster)
             {
                 return;
             }
@@ -146,32 +154,36 @@ namespace MQBindlib
             Cluster.Remove();
             ZmqBus zmqBus = new ZmqBus();
             Cluster.bus = zmqBus;
+
+            //本节点消息
             ClusterNode node = new ClusterNode()
             {
                 Name = ClusterName,
                 Id = ClusterId,
                 Address = RouterAddress,
                 NodeType = NodeType.Request,
-                 IsClusterMaster = IsClusterMaster,
+                IsClusterMaster = IsClusterMaster,
             };
-          
+
             zmqBus.Subscribe(ConstString.ReqCluster);
             zmqBus.Subscribe(ConstString.UpdateCluster);
             zmqBus.StringReceived += ZmqBus_StringReceived;
-           
+
             Thread nodeTh = new Thread(p =>
             {
-                ZmqBus tmp= new ZmqBus();
+                ZmqBus tmp = new ZmqBus();
                 tmp.Publish(ConstString.ReqCluster, node);
                 while (IsRun)
                 {
                     Thread.Sleep(5000);
                     tmp.Publish(ConstString.ReqCluster, node);
                 }
-               //退出后注销
-             zmqBus.StringReceived -= ZmqBus_StringReceived;
+                //退出后注销
+                zmqBus.StringReceived -= ZmqBus_StringReceived;
             }
             );
+            nodeTh.IsBackground = true;
+            nodeTh.Name = ConstString.ReqCluster;
             nodeTh.Start();
         }
 
@@ -216,6 +228,7 @@ namespace MQBindlib
                 if (Interlocked.Increment(ref rspNum) < MaxProcessThreadNum)
                 {
                     ThreadPool.QueueUserWorkItem(CreateRsp);
+                    Logger.Singleton.Debug(string.Format("启动后台线程：{0}", rspNum));
                 }
             }
            
@@ -354,7 +367,12 @@ namespace MQBindlib
 
         }
         
-
+        /// <summary>
+        /// 高可用中心刷新
+        /// </summary>
+        /// <param name="rsp"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         private bool RspCluster(ResponseSocket rsp,string data)
         {
             if (IsCluster)
@@ -381,7 +399,9 @@ namespace MQBindlib
             return new RspSocket<T>() { Message = obj,responseSocket=result.responseSocket, ehoServer = this, key=result.key, Client=result.Client };
         }
 
-
+        /// <summary>
+        /// 关闭
+        /// </summary>
         public void Close()
         {
             ZmqProxy.Close(serverid);

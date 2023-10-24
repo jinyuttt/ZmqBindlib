@@ -113,6 +113,10 @@
               "target": "Package",
               "version": "[2.2.0, )"
             },
+            "LiteDB": {
+              "target": "Package",
+              "version": "[5.0.17, )"
+            },
             "Microsoft.Extensions.Logging.Console": {
               "target": "Package",
               "version": "[7.0.0, )"

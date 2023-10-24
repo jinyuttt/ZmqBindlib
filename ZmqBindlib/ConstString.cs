@@ -3,6 +3,10 @@
     internal class ConstString
     {
         public const string ReqCluster = "ReqCluster";
+
+       /// <summary>
+       /// 更新主节点
+       /// </summary>
         public const string UpdateCluster = "UpdateCluster";
 
 
@@ -17,5 +21,10 @@
         /// 发布方发布自己的地址
         /// </summary>
         public const string PubPublisher = "PubPublisher";
+
+        /// <summary>
+        /// 存储数据
+        /// </summary>
+        public const string Storage = "Storage";
     }
 }

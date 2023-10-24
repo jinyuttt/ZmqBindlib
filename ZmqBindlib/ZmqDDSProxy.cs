@@ -41,12 +41,28 @@ namespace MQBindlib
         /// </summary>
         public static bool IsMaster { get; set; } = false;
 
+
+        public static bool  nodemaster=false;
+
+        /// <summary>
+        /// 存储数据
+        /// </summary>
+        public static bool IsStorage { get; set; } = false;
+
+        public static int StorageHours { get; set; }=24;
+
         private static ConcurrentDictionary<string, KeyNode> dic = new ConcurrentDictionary<string, KeyNode>();
 
         private static  ConcurrentQueue<InerTopicMessage> topicMessages = new ConcurrentQueue<InerTopicMessage>();
 
         private static NodeType nodeType = NodeType.XPub;
 
+        private static DBStorage dbStorage = null;
+           
+
+        /// <summary>
+        /// 启动订阅发布代理
+        /// </summary>
         public static void Start()
         {
             Thread thread = new Thread(DDSProxy);
@@ -70,6 +86,7 @@ namespace MQBindlib
             var proxy = new Proxy(xsubSocket, xpubSocket, pub);
             // blocks indefinitely
             proxy.Start();
+          
 
         }
         
@@ -93,6 +110,7 @@ namespace MQBindlib
             zmqBus.Subscribe(ConstString.RspCluster);
             zmqBus.Subscribe(ConstString.UpdateCluster);
             zmqBus.Subscribe(ConstString.PubCluster);
+            zmqBus.Subscribe(ConstString.Storage);
             //中心之间
             zmqBus.StringReceived += ZmqBus_StringReceived;
             Thread monitor = new Thread(p =>
@@ -132,9 +150,12 @@ namespace MQBindlib
                     var lst = Cluster.GetNodes(ClusterName, nodeType);
                     var msg = Util.JSONSerializeObject(lst);
                     publisherSocket.SendMoreFrame(ConstString.ReqCluster).SendFrame(msg);
+                   
                 }
 
             });
+            timer.IsBackground = true;
+            timer.Name = "toSubscriber";
             timer.Start();
 
             //
@@ -146,28 +167,33 @@ namespace MQBindlib
                 while (true)
                 {
                     Thread.Sleep(2000);
-
-                    var lst = Cluster.GetNodes(ClusterName, NodeType.XPub);
+                    //发布方启动自己的节点
+                    var lst = Cluster.GetNodes(ClusterName,nodeType);
                     var master=lst.Find(p => p.IsMaster);
                     if(master != null&&master.Id==ClusterId)
                     {
+                        IsMaster=true;
                         //作用不大，控制Masters刷新
                         var msg = Util.JSONSerializeObject(lst);
                         var rsps = Cluster.GetRsp();
                         foreach (var node in rsps)
                         {
-                            using (RequestSocket request = new RequestSocket(node))
-                            {
-                                try
+                            Task.Factory.StartNew(() => {
+                                using (RequestSocket request = new RequestSocket(node))
                                 {
-                                    request.SendFrame(msg);
-                                    request.ReceiveFrameString();
-                                }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e);
+                                    try
+                                    {
+                                        request.SendFrame(msg);
+                                        request.ReceiveFrameString();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Singleton.Error(e.Message);
+                                    }
                                 }
                             }
+                            ).Wait(1000);
+                           
                         }
                     }
                  
@@ -175,6 +201,8 @@ namespace MQBindlib
                 }
 
             });
+            pub.IsBackground = true;
+            pub.Name = "ClusterToPub";
             pub.Start();
             Thread recpub = new Thread(p =>
             {
@@ -189,6 +217,8 @@ namespace MQBindlib
                         Cluster.AddRsp(msg);  
                     }
             });
+            recpub.IsBackground = true;
+            recpub.Name = "recviceRsp";
             recpub.Start();
         }
 
@@ -207,6 +237,10 @@ namespace MQBindlib
             if (arg1 == ConstString.UpdateCluster)
             {
                 Cluster.UPdateMaster(arg2);
+                if(arg2 == ClusterId)
+                {
+                    IsMaster = true;
+                }
             }
             if (arg1 == ConstString.PubCluster)
             {
@@ -218,8 +252,19 @@ namespace MQBindlib
                 }
               
             }
+            if(arg1 == ConstString.Storage)
+            {
+                var obj = Util.JSONDeserializeObject<InerTopicMessage>(arg2);
+                dbStorage.Add(obj.Topic, obj.Message);
+            }
         }
 
+        /// <summary>
+        /// 创建消息Push
+        /// </summary>
+        /// <param name="topic">主题</param>
+        /// <param name="id">分组ID</param>
+        /// <returns></returns>
         private static KeyNode GetPushSocket(string topic,string id)
         {
             KeyNode keyNode = new KeyNode();
@@ -228,6 +273,7 @@ namespace MQBindlib
             var mat = Regex.Match(SubAddress, pattrn);
             if (mat.Success)
             {
+                //根据订阅IP设置具体IP
                 tmp = "tcp://" + mat.Value;
             }
             var pushSocket = new PushSocket();
@@ -241,6 +287,9 @@ namespace MQBindlib
             return keyNode;
         }
 
+        /// <summary>
+        /// 分发消息
+        /// </summary>
         private static void Process()
         {
             Thread thread = new Thread(p => {
@@ -270,12 +319,20 @@ namespace MQBindlib
             thread.Start();
         }
 
+        /// <summary>
+        /// 启动分组拉取（类似kafka)
+        /// </summary>
         public static void StartProxy()
         {
+            if(IsStorage)
+            {
+                dbStorage = new DBStorage();
+            }
             nodeType = NodeType.Poll;
             ReqProxy();
             Process();
             MasterProxy();
+
         }
         private static void ReqProxy()
         {
@@ -293,7 +350,7 @@ namespace MQBindlib
                
 
             });
-            thread.Name = "xsubSocket";
+            thread.Name = "proxy";
             thread.Start();
 
             Thread rspThread = new Thread(p =>
@@ -305,10 +362,24 @@ namespace MQBindlib
                 {
                     var topic = rsp.ReceiveFrameString();
                     var id = rsp.ReceiveFrameString();
+                    var offset = rsp.ReceiveFrameString();
                     var sock = dic.GetOrAdd(topic + id, GetPushSocket(topic, id));
-                   
                     rsp.SendFrame(sock.Address);
-                  
+                    DataModel model= Enum.Parse<DataModel>(offset);
+                    if (model == DataModel.Earliest)
+                    {
+                        Task.Factory.StartNew(() =>
+                        {
+                           var off=  (DateTime.Now.Ticks / 10000) - StorageHours * 60 * 60 * 1000;
+                            dbStorage.Remove(topic,off);
+                            var lst = dbStorage.GetMessage(topic);
+                            foreach (var item in lst)
+                            {
+                                sock.Socket.SendMoreFrame(item.Topic).SendFrame(item.Message);
+                            }
+                        });
+                        
+                    }
                 }
 
             });
@@ -330,11 +401,28 @@ namespace MQBindlib
                     if(ConstString.PubPublisher==topic)
                     {
                         Cluster.AddRsp(data);
-                     
                         continue;
                     }
                   
                     topicMessages.Enqueue(new InerTopicMessage() { Topic=topic,Message = data });
+                    if (!nodemaster)
+                    {
+                        var lst = Cluster.GetNodes(ClusterName, nodeType);
+                        var master = lst.Find(p => p.IsMaster);
+                        if (master != null && master.Id == ClusterId)
+                        {
+                            nodemaster = true;
+                        }
+                    }
+                    if (nodemaster)
+                    {
+                        Cluster.bus.Publish(ConstString.Storage, new InerTopicMessage() { Topic = topic, Message = data });
+                     
+                    }
+                    if(IsStorage)
+                    {
+                        dbStorage.Add(topic, data);
+                    }
                 }
 
             });

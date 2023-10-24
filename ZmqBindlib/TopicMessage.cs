@@ -5,6 +5,8 @@
         public string? Topic { get; set; }
 
         public string? Message { get; set; }
+
+        public long DateValue { get; set; }
     }
 
     public class TopicMessage<T>

@@ -5,7 +5,7 @@ namespace MQBindlib
 {
 
     /// <summary>
-    /// 请求恢复代理
+    /// 请求回复代理
     /// </summary>
     internal class ZmqProxy
     {
@@ -31,7 +31,7 @@ namespace MQBindlib
            // RspCluster();
         }
 
-       
+
 
         /// <summary>
         /// 启动代理
@@ -40,19 +40,19 @@ namespace MQBindlib
         {
             var routSocket = new RouterSocket();
             routSocket.Options.ReceiveHighWatermark = 0;
-            routSocket.Options.SendHighWatermark    = 0;
+            routSocket.Options.SendHighWatermark = 0;
             routSocket.Bind(RouterAddress);
 
             var dealSocket = new DealerSocket();
             dealSocket.Options.SendHighWatermark = 0;
-            dealSocket.Options.ReceiveHighWatermark  = 0;
+            dealSocket.Options.ReceiveHighWatermark = 0;
             dealSocket.Bind(DealerAddress);
-          //  dealerAllSocket = dealSocket;
-          ////  var pubSocket = new PublisherSocket("inproc://ZMP");
-          //  routerAllSocket = routSocket;
+            //  dealerAllSocket = dealSocket;
+            ////  var pubSocket = new PublisherSocket("inproc://ZMP");
+            //  routerAllSocket = routSocket;
             Console.WriteLine("Intermediary started, and waiting for messages");
-                // proxy messages between frontend / backend
-                var proxy = new Proxy(routSocket, dealSocket, null);
+            // proxy messages between frontend / backend
+            var proxy = new Proxy(routSocket, dealSocket, null);
             // blocks indefinitely
             if (key == null)
             {
@@ -60,12 +60,16 @@ namespace MQBindlib
             }
 
             dic[key.ToString()] = proxy;
-                proxy.Start();
+            proxy.Start();
             routSocket.Close();
             dealSocket.Close();
             Console.WriteLine("Intermediary started, and waiting for messages");
         }
 
+        /// <summary>
+        /// 关闭
+        /// </summary>
+        /// <param name="key"></param>
         public static void Close(string key)
         {
             if(key!=null)
