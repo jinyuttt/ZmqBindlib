@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MQBindlib
 {
-    internal class Util
+    public class Util
     {
      
         public static string JSONSerializeObject<T>(T obj)

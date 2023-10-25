@@ -11,7 +11,7 @@ namespace ConsoleApp1
 {
     internal class Program
     {
-        static string localaddes = "tcp://127.0.0.1:5560";
+        static string localaddes = "tcp://192.168.237.55:6666";
        static EhoServer server= new EhoServer();
         static string address = "";
         private static string sr;
@@ -35,18 +35,19 @@ namespace ConsoleApp1
             //  Req();
             // DDProxy();
             //  TestClusterPUb();
-           // TestClusterSub();
-            TestClusterSub();
+            // TestClusterSub();
+            //  TestClusterSub();
             /// Sub();
-            TestSub();
-           pub();
+            // TestSub();
+            // pub();
             // TestPub();
             //  TestSub();
-          
+            TestEhoServer();
             Console.WriteLine("Hello, World!");
-           // TestCluster();
-           // TestIP();
-           // recvice();
+            // TestCluster();
+            // TestIP();
+            // recvice();
+           // Req();
             Console.ReadLine();
         }
         static void TestSub()
@@ -81,17 +82,41 @@ namespace ConsoleApp1
             ZmqDDSProxy.Start();
         }
 
-        static void TestCluster()
+        static void TestEhoServer()
         {
 
 
             EhoServer eho = new EhoServer();
-            eho.IsCluster = true;
+          //  eho.IsCluster = true;
             eho.DealerAddress = "inproc://server";
             eho.RouterAddress = "tcp://127.0.0.1:5550";
-
+            string addr = Util.GetLocalAllIP()[0];
+          //  Console.WriteLine("bind :" + addr);
+            eho.RouterAddress = localaddes;
             eho.StringReceived += EhoServer_StringReceived;
-            eho.Start();
+            do
+            {
+                try
+                {
+                    if (eho.Start())
+                    {
+                        break;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    // ErrorCode AddressNotAvailable NetMQ.ErrorCode
+                    if (ex.HResult != -2146233088)
+                    {
+                        break;
+                    }
+                   
+
+                }
+                Thread.Sleep(1000);
+            } while (true);
+
             //Console.Title = "5560";
             //EhoServer ehoServer = new EhoServer();
             //ehoServer.IsCluster = true;
@@ -107,7 +132,7 @@ namespace ConsoleApp1
             //});
             //thread.Start();
 
-            Req();
+            // Req();
         }
 
         private static void EhoServer_StringReceived(object? sender, RspSocket<string> e)

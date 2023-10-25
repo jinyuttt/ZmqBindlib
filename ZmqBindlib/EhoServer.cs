@@ -113,29 +113,48 @@ namespace MQBindlib
 
         private bool IsRun = true;
 
+        private bool IsSucess = false;
+
+       
+
         /// <summary>
         /// 启动
         /// </summary>
-        public  void Start()
+        public  bool Start()
         {
             
             REPProxy();
-            Thread.Sleep(1000);//让代理线启动，进程内通讯先要绑定地址
-            Check();
-            Flush();
-            RspCluster();
+            if (IsSucess)
+            {
+              
+                Check();
+                Flush();
+                RspCluster();
+            }
+            return IsSucess;
         }
 
         /// <summary>
         /// 启动代理，代理是阻塞的
         /// </summary>
-        private  void REPProxy()
+        private void REPProxy()
         {
             ZmqProxy.DealerAddress = DealerAddress;
             ZmqProxy.RouterAddress = RouterAddress;
-            serverid=Util.GuidToLongID().ToString();
+            serverid = Util.GuidToLongID().ToString();
             ZmqProxy.Start(serverid);
+            int ret = -1;
+            do
+            {
+                 ret = ZmqProxy.IsSucess(serverid);
+            }
+            while (ret == -1);
             Logger.Singleton.Info(string.Format("代理启动：RouterAddress:{0},DealerAddress:{1}", RouterAddress, DealerAddress));
+            if(ret==1)
+            {
+                IsSucess = true;
+            }
+
         }
 
         /// <summary>
@@ -225,9 +244,10 @@ namespace MQBindlib
             curTikcs = DateTime.Now.Ticks;
             if (lstSockets.Count < 10)
             {
-                if (Interlocked.Increment(ref rspNum) < MaxProcessThreadNum)
+                if (rspNum < MaxProcessThreadNum)
                 {
                     ThreadPool.QueueUserWorkItem(CreateRsp);
+                    Interlocked.Increment(ref rspNum);
                     Logger.Singleton.Debug(string.Format("启动后台线程：{0}", rspNum));
                 }
             }
@@ -277,91 +297,99 @@ namespace MQBindlib
         /// </summary>
         private  void CreateRsp(object? oj)
         {
-           var server = new ResponseSocket();
-            server.Options.Linger = new TimeSpan(10000);
-            server.Connect(DealerAddress);
-            while (IsRun)
+            try
             {
-                try
+                var server = new ResponseSocket();
+                server.Options.Linger = new TimeSpan(10000);
+                server.Connect(DealerAddress);
+                while (IsRun)
                 {
-                    string client = server.ReceiveFrameString();
-                    string key = random.Next(1, int.MaxValue).ToString();
-                    dicSocket[key] = server;//存储到使用
-                    lstSockets.Remove(server);//空闲中移除
-                    Check();//启动预留
-                   
-                    if (ByteReceived != null)
+                    try
                     {
-                        var bytes = server.ReceiveFrameBytes();
-                        if(bytes != null)
-                        {
-                           var data=  Encoding.UTF8.GetString(bytes);
+                        string client = server.ReceiveFrameString();
+                        string key = random.Next(1, int.MaxValue).ToString();
+                        dicSocket[key] = server;//存储到使用
+                        lstSockets.Remove(server);//空闲中移除
+                        Check();//启动预留
 
-                            if (RspCluster(server,data))
+                        if (ByteReceived != null)
+                        {
+                            var bytes = server.ReceiveFrameBytes();
+                            if (bytes != null)
                             {
-                                continue;
+                                var data = Encoding.UTF8.GetString(bytes);
+
+                                if (RspCluster(server, data))
+                                {
+                                    continue;
+                                }
                             }
-                        }
-                        var rsp = new RspSocket<byte[]> { Message = bytes, responseSocket = server, key = key, ehoServer = this, Client=client };
+                            var rsp = new RspSocket<byte[]> { Message = bytes, responseSocket = server, key = key, ehoServer = this, Client = client };
 
-                        ByteReceived(this, rsp);
+                            ByteReceived(this, rsp);
 
-                    }
-                    else if (StringReceived != null)
-                    {
-                        var msg = server.ReceiveFrameString();
-                        if (RspCluster(server, msg))
-                        {
-                            continue;
                         }
-                        var rsp = new RspSocket<string> { Message = msg, responseSocket = server, key = key, ehoServer = this, Client = client };
-
-                        StringReceived(this, rsp);
-                    }
-                    else
-                    {
-                        if (eventSlims.IsEmpty)
+                        else if (StringReceived != null)
                         {
-                            eventSlims.Add(new ManualResetEventSlim(false));
-                        }
-                        if (eventSlims.TryTake(out var resetEventSlim))
-                        {
-                            resetEventSlim.Reset();
                             var msg = server.ReceiveFrameString();
                             if (RspCluster(server, msg))
                             {
                                 continue;
                             }
-                            var rsp = new RspSocket<string>() { responseSocket = server, Message = msg, key = key, Client = client };
-                            dicManualResetEvent[key] = resetEventSlim;
-                            queue.Add(rsp);
-                            if(!IsEmptyReturn)
+                            var rsp = new RspSocket<string> { Message = msg, responseSocket = server, key = key, ehoServer = this, Client = client };
+
+                            StringReceived(this, rsp);
+                        }
+                        else
+                        {
+                            if (eventSlims.IsEmpty)
                             {
-                                resetEventSlim.Wait();//等待
+                                eventSlims.Add(new ManualResetEventSlim(false));
                             }
-                           
+                            if (eventSlims.TryTake(out var resetEventSlim))
+                            {
+                                resetEventSlim.Reset();
+                                var msg = server.ReceiveFrameString();
+                                if (RspCluster(server, msg))
+                                {
+                                    continue;
+                                }
+                                var rsp = new RspSocket<string>() { responseSocket = server, Message = msg, key = key, Client = client };
+                                dicManualResetEvent[key] = resetEventSlim;
+                                queue.Add(rsp);
+                                if (!IsEmptyReturn)
+                                {
+                                    resetEventSlim.Wait();//等待
+                                }
+
+                            }
+                        }
+                        if (IsEmptyReturn)
+                        {
+                            server.SendFrame(resp);
+                            this.Response(key);
                         }
                     }
-                    if (IsEmptyReturn)
+                    catch (System.Net.Sockets.SocketException ex)
                     {
-                        server.SendFrame(resp);
-                        this.Response(key);
+                        if (ex.ErrorCode == 10054)
+                        {
+                            break;
+                        }
+                    }
+                    catch (ObjectDisposedException ex)
+                    {
+                        if (server.IsDisposed)
+                        {
+                            break;
+                        }
                     }
                 }
-                catch (System.Net.Sockets.SocketException ex)
-                {
-                    if (ex.ErrorCode == 10054)
-                    {
-                        break;
-                    }
-                }
-                catch (ObjectDisposedException ex)
-                {
-                    if (server.IsDisposed)
-                    {
-                        break;
-                    }
-                }
+               
+            }
+            catch(NetMQException ex)
+            {
+                Logger.Singleton.Error("处理启动异常", ex);
             }
             Interlocked.Decrement(ref rspNum);//记录退出
 

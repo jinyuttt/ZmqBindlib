@@ -7,8 +7,12 @@
     <Description>zmq封装</Description>
     <Copyright>2023</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>封装</PackageReleaseNotes>
+    <PackageReleaseNotes>增加pull模式订阅存储数据</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/jinyuttt/ZmqBindlib.git</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jinyuttt/ZmqBindlib.git</RepositoryUrl>
+    <Title>ZMQ封装</Title>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -15,6 +15,7 @@ namespace MQBindlib
 
         public static Dictionary<string,Proxy> dic=new Dictionary<string,Proxy>();
 
+        public static Dictionary<string,bool> dic_ =new Dictionary<string, bool>();
         //private static RouterSocket routerAllSocket = null;
 
         //private static DealerSocket dealerAllSocket = null;
@@ -28,9 +29,29 @@ namespace MQBindlib
             thread.Name = "ZmqProxy";
             thread.IsBackground = true;
             thread.Start(key);
-           // RspCluster();
+         
         }
 
+       /// <summary>
+       /// -1,还需要等待；
+       /// 1成功
+       /// 0失败
+       /// </summary>
+       /// <param name="key"></param>
+       /// <returns></returns>
+        public static int IsSucess(string key)
+        {
+            if(dic_.TryGetValue(key, out var val))
+            {
+                if (val)
+                {
+                    return 1;
+                }
+                return 0;
+            }
+            return -1;
+
+        }
 
 
         /// <summary>
@@ -38,32 +59,39 @@ namespace MQBindlib
         /// </summary>
         private static void REPProxy(object key)
         {
-            var routSocket = new RouterSocket();
-            routSocket.Options.ReceiveHighWatermark = 0;
-            routSocket.Options.SendHighWatermark = 0;
-            routSocket.Bind(RouterAddress);
-
-            var dealSocket = new DealerSocket();
-            dealSocket.Options.SendHighWatermark = 0;
-            dealSocket.Options.ReceiveHighWatermark = 0;
-            dealSocket.Bind(DealerAddress);
-            //  dealerAllSocket = dealSocket;
-            ////  var pubSocket = new PublisherSocket("inproc://ZMP");
-            //  routerAllSocket = routSocket;
-            Console.WriteLine("Intermediary started, and waiting for messages");
-            // proxy messages between frontend / backend
-            var proxy = new Proxy(routSocket, dealSocket, null);
-            // blocks indefinitely
-            if (key == null)
+            try
             {
-                key = Util.GuidToLongID().ToString();
-            }
+                var routSocket = new RouterSocket();
+                routSocket.Options.ReceiveHighWatermark = 0;
+                routSocket.Options.SendHighWatermark = 0;
+                routSocket.Bind(RouterAddress);
 
-            dic[key.ToString()] = proxy;
-            proxy.Start();
-            routSocket.Close();
-            dealSocket.Close();
-            Console.WriteLine("Intermediary started, and waiting for messages");
+                var dealSocket = new DealerSocket();
+                dealSocket.Options.SendHighWatermark = 0;
+                dealSocket.Options.ReceiveHighWatermark = 0;
+                dealSocket.Bind(DealerAddress);
+               
+                Console.WriteLine("Intermediary started, and waiting for messages");
+                // proxy messages between frontend / backend
+                var proxy = new Proxy(routSocket, dealSocket, null);
+                // blocks indefinitely
+                if (key == null)
+                {
+                    key = Util.GuidToLongID().ToString();
+                }
+
+                dic[key.ToString()] = proxy;
+                dic_[key.ToString()] = true;
+                proxy.Start();
+                routSocket.Close();
+                dealSocket.Close();
+                Console.WriteLine("Intermediary started, and waiting for messages");
+            }
+            catch(NetMQ.NetMQException e)
+            {
+                Logger.Singleton.Error("启动错误", e);
+                dic_[key.ToString()] = false;
+            }
         }
 
         /// <summary>
@@ -72,20 +100,24 @@ namespace MQBindlib
         /// <param name="key"></param>
         public static void Close(string key)
         {
+          
             if(key!=null)
             {
-                if(dic.TryGetValue(key.ToString(), out var proxy))
+                dic_.Remove(key);
+                if (dic.TryGetValue(key.ToString(), out var proxy))
                 {
                     proxy.Stop();
                 }
 
             }
-            else if(dic.Count==0)
+            else if(dic.Count==1)
             {
-               foreach(var kv in dic)
+                foreach (var kv in dic)
                 {
                     kv.Value.Stop();
                 }
+                dic.Clear();
+                dic_.Clear();
             }
 
         }

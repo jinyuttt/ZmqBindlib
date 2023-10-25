@@ -27,7 +27,10 @@ namespace MQBindlib
 
         private bool isRun = true;
 
-        private bool isNeed=false;
+    
+
+        public bool IsCluster { get; set; }=
+            false;
 
         List<ClusterNode> clusterNodes = new List<ClusterNode>();
 
@@ -41,8 +44,11 @@ namespace MQBindlib
         /// </summary>
         private void RequestCluster(RequestSocket  socket=null)
         {
-          
-          
+
+            if (!IsCluster)
+            {
+                return;
+            }
            var task= Task.Factory.StartNew(() =>
             {
                 // connect
@@ -102,21 +108,14 @@ namespace MQBindlib
         /// <returns></returns>
         public string Request(string msg)
         {
-            if(isNeed)
-            {
-                Console.WriteLine("SS:"+RemoteAddress);
-            }
+          
             using (var client = new RequestSocket())  // connect
             {
-               dic[Thread.CurrentThread.ManagedThreadId] = client;
+                dic[Thread.CurrentThread.ManagedThreadId] = client;
                 RequestCluster(client);
                 client.Connect(RemoteAddress);
                 client.SendMoreFrame(Client).SendFrame(msg);
-                if (isNeed)
-                {
-                    Console.WriteLine("dd:" + RemoteAddress);
-                    Console.WriteLine(client.Options.LastEndpoint);
-                }
+              
                 var ret= client.ReceiveFrameString();
                 dic.Remove(Thread.CurrentThread.ManagedThreadId,out var r);  
                 return ret;

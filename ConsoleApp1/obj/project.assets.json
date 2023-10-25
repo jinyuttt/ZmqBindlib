@@ -827,7 +827,7 @@
           }
         }
       },
-      "MQBindlib/1.0.0": {
+      "MQBindlib/1.0.1": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v7.0",
         "dependencies": {
@@ -2203,7 +2203,7 @@
         "version.txt"
       ]
     },
-    "MQBindlib/1.0.0": {
+    "MQBindlib/1.0.1": {
       "type": "project",
       "path": "../ZmqBindlib/MQBindlib.csproj",
       "msbuildProject": "../ZmqBindlib/MQBindlib.csproj"
@@ -2211,7 +2211,7 @@
   },
   "projectFileDependencyGroups": {
     "net7.0": [
-      "MQBindlib >= 1.0.0"
+      "MQBindlib >= 1.0.1"
     ]
   },
   "packageFolders": {

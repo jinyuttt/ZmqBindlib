@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v7.0": {
       "ConsoleApp1/1.0.0": {
         "dependencies": {
-          "MQBindlib": "1.0.0"
+          "MQBindlib": "1.0.1"
         },
         "runtime": {
           "ConsoleApp1.dll": {}
@@ -556,7 +556,7 @@
           }
         }
       },
-      "MQBindlib/1.0.0": {
+      "MQBindlib/1.0.1": {
         "dependencies": {
           "Confluent.Kafka": "2.2.0",
           "LiteDB": "5.0.17",
@@ -848,7 +848,7 @@
       "path": "system.windows.extensions/5.0.0",
       "hashPath": "system.windows.extensions.5.0.0.nupkg.sha512"
     },
-    "MQBindlib/1.0.0": {
+    "MQBindlib/1.0.1": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

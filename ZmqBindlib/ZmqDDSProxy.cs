@@ -49,6 +49,9 @@ namespace MQBindlib
         /// </summary>
         public static bool IsStorage { get; set; } = false;
 
+        /// <summary>
+        /// 存储时间，小时
+        /// </summary>
         public static int StorageHours { get; set; }=24;
 
         private static ConcurrentDictionary<string, KeyNode> dic = new ConcurrentDictionary<string, KeyNode>();
@@ -58,35 +61,53 @@ namespace MQBindlib
         private static NodeType nodeType = NodeType.XPub;
 
         private static DBStorage dbStorage = null;
-           
+
+        private static ManualResetEventSlim eventSlim = new ManualResetEventSlim();
+        private static ManualResetEventSlim  resetEventSlim = new ManualResetEventSlim();
+        private static bool isSucess = false;
+        private static bool isPullSucess = false;
+
+
 
         /// <summary>
         /// 启动订阅发布代理
         /// </summary>
-        public static void Start()
+        public static bool Start()
         {
             Thread thread = new Thread(DDSProxy);
             thread.Name = "ZmqProxy";
             thread.IsBackground = true;
             thread.Start();
-            
-            MasterProxy();
+            eventSlim.Wait();
+            if (isSucess)
+            {
+                MasterProxy();
+            }
+            return isSucess;
         }
 
         private static void DDSProxy()
         {
-            var xpubSocket = new XPublisherSocket();
-            xpubSocket.Bind(PubAddress);
+            try
+            {
+                var xpubSocket = new XPublisherSocket();
+                xpubSocket.Bind(PubAddress);
 
-            var xsubSocket = new XSubscriberSocket();
-            xsubSocket.Bind(SubAddress);
-            var pub = new PublisherSocket("@inproc://ddsproxy");
-            Console.WriteLine(" publish  Intermediary started, and waiting for messages");
-            // proxy messages between frontend / backend
-            var proxy = new Proxy(xsubSocket, xpubSocket, pub);
-            // blocks indefinitely
-            proxy.Start();
-          
+                var xsubSocket = new XSubscriberSocket();
+                xsubSocket.Bind(SubAddress);
+                var pub = new PublisherSocket("@inproc://ddsproxy");
+                Console.WriteLine(" publish  Intermediary started, and waiting for messages");
+                // proxy messages between frontend / backend
+                var proxy = new Proxy(xsubSocket, xpubSocket, pub);
+                // blocks indefinitely
+                isSucess = true;
+                eventSlim.Set();
+                proxy.Start();
+            }
+            catch(NetMQException e) {
+                Logger.Singleton.Error("启动失败", e);
+            }
+            eventSlim.Set();
 
         }
         
@@ -322,7 +343,7 @@ namespace MQBindlib
         /// <summary>
         /// 启动分组拉取（类似kafka)
         /// </summary>
-        public static void StartProxy()
+        public static bool StartProxy()
         {
             if(IsStorage)
             {
@@ -330,29 +351,45 @@ namespace MQBindlib
             }
             nodeType = NodeType.Poll;
             ReqProxy();
-            Process();
-            MasterProxy();
-
+            if (isPullSucess)
+            {
+                Process();
+                MasterProxy();
+            }
+            return isPullSucess;
         }
         private static void ReqProxy()
         {
             Thread thread = new Thread(p =>
             {
                 //中心代理
-                var xsubSocket = new XSubscriberSocket();
-                xsubSocket.Bind(SubAddress);
-                var xpubSocket=new XPublisherSocket();
-                xpubSocket.Bind("inproc://ddsproxy");
-                Console.WriteLine(" publish  Intermediary started, and waiting for messages");
-                var proxy = new Proxy(xsubSocket, xpubSocket);
-              
-                proxy.Start();
-               
+                try
+                {
+                    var xsubSocket = new XSubscriberSocket();
+                    xsubSocket.Bind(SubAddress);
+                    var xpubSocket = new XPublisherSocket();
+                    xpubSocket.Bind("inproc://ddsproxy");
+                    Console.WriteLine(" publish  Intermediary started, and waiting for messages");
+                    var proxy = new Proxy(xsubSocket, xpubSocket);
+                    isPullSucess = true;
+                    resetEventSlim.Set();
+                    proxy.Start();
+
+                }
+                catch (Exception ex)
+                {
+                    Logger.Singleton.Error("启动失败", ex);
+                }
+                resetEventSlim.Set();
 
             });
             thread.Name = "proxy";
             thread.Start();
-
+            resetEventSlim.Wait();
+            if(!isPullSucess)
+            {
+                return;
+            }
             Thread rspThread = new Thread(p =>
             {
                 //接受Pull订阅信息
