@@ -70,8 +70,8 @@ namespace ConsoleApp1
         {
             ZmqPullProxy.PubAddress = "tcp://192.168.237.55:6666";
             ZmqPullProxy.SubAddress = "tcp://192.168.237.55:6667";
-            //ZmqDDSProxy.IsCluster = true;//高可用
-            // ZmqDDSProxy.IsStorage = true;
+            //ZmqPullProxy.IsCluster = true;//高可用
+            // ZmqPullProxy.IsStorage = true;//是否存储数据
             bool isret = false;
             do
             {

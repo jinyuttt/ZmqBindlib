@@ -105,6 +105,46 @@ zmq常用封装
             ZmqDDSProxy.Start();
         }
         ``````````
+4.仿照kafka订阅（pull模式）
+
+	
+		````
+		  ZmqSubscriberGroup zmqSubscriber=new ZmqSubscriberGroup();
+            zmqSubscriber.Address = "tcp://192.168.237.55:6666";
+           // zmqSubscriber.IsDDS= true;//高可用
+            zmqSubscriber.DataOffset = DataModel.Earliest;
+           // zmqSubscriber.Indenty = "test";//订阅在不同分组
+            zmqSubscriber.Subscribe("A");
+            zmqSubscriber.StringReceived += ZmqSubscriber_StringReceived;
+````
+````
+		 ZmqPublisher pub = new ZmqPublisher();
+            pub.LocalAddress =localaddes;
+           // pub.IsProxy = true; 是否使用中间代理
+            int num = 0;
+            while (true)
+            {
+               // Thread.Sleep(1000);
+                pub.Publish("A", "ssss"+num++);
+            }
+`````
+`````
+		 static void TestClusterSub()
+        {
+            ZmqPullProxy.PubAddress = "tcp://192.168.237.55:6666";
+            ZmqPullProxy.SubAddress = "tcp://192.168.237.55:6667";
+            //ZmqPullProxy.IsCluster = true;//高可用
+            // ZmqPullProxy.IsStorage = true;//是否存储数据
+            bool isret = false;
+            do
+            {
+                isret = ZmqPullProxy.Start(); 
+                Thread.Sleep(1000);
+            }
+            while (!isret);
+        }
+        ``````````
+
 
 ## 中心高可用部署
 1.推荐方式
@@ -115,17 +155,15 @@ zmq常用封装
      使用keppalive
 
 2.使用封装
-  该功能前提是可以使用广播，可以允许少量数据丢失；
-  （1）请求返回模式
+  该功能前提是可以使用广播，可以允许少量数据丢失；  
+  （1）请求返回模式   
       中心节点：
 
        ```````````
-
           EhoServer eho = new EhoServer();
-            eho.IsCluster = true;
+            eho.IsCluster = true;//高可用
             eho.DealerAddress = "inproc://server";
             eho.RouterAddress = "tcp://127.0.0.1:5550";
-
             eho.StringReceived += EhoServer_StringReceived;
             eho.Start();
 
@@ -185,18 +223,17 @@ zmq常用封装
 `````````````
   对于发布订阅，中心何发布订阅端都需要启动高可用，会刷新地址
 
- （3）负载均衡式订阅发布
-    该模式是仿照kafka功能的；
-     中心：
+ （3）负载均衡式订阅发布(该模式是仿照kafka功能的,Pull模式）
+     中心：  
 ```
-               ZmqPullProxy.PubAddress = "tcp://127.0.0.1:2222";
+            ZmqPullProxy.PubAddress = "tcp://127.0.0.1:2222";
             ZmqPullProxy.SubAddress = "tcp://127.0.0.1:4444";
             ZmqPullProxy.IsCluster = true;//高可用
             ZmqPullProxy.Start(); //注意方法，启动和另外发布订阅方法不同
 
 ```
- 发布端：和前面一样
- 订阅端：
+ 发布端：和前面一样    
+ 订阅端：  
 ```
            ZmqSubscriberGroup zmqSubscriber=new ZmqSubscriberGroup();
             zmqSubscriber.Address = "tcp://127.0.0.1:1234";
@@ -205,7 +242,7 @@ zmq常用封装
             zmqSubscriber.Subscribe("A");
             zmqSubscriber.StringReceived += ZmqSubscriber_StringReceived;
 ```
-(4)kafka封装
+(4)kafka封装  
 ```
              KafkaPublisher kafkaPublisher = new KafkaPublisher();
                 int num = 0;
