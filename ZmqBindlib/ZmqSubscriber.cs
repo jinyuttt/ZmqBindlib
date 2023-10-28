@@ -21,7 +21,7 @@ namespace MQBindlib
         /// <summary>
         /// 中心模式，并且主从
         /// </summary>
-        public bool IsDDS {get; set; }
+        public bool IsDDS { get; set; } = false;
 
         /// <summary>
         /// 次优先，字符串

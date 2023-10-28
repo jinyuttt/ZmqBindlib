@@ -827,7 +827,7 @@
           }
         }
       },
-      "MQBindlib/1.0.1": {
+      "MQBindlib/1.0.2": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v7.0",
         "dependencies": {
@@ -2203,7 +2203,7 @@
         "version.txt"
       ]
     },
-    "MQBindlib/1.0.1": {
+    "MQBindlib/1.0.2": {
       "type": "project",
       "path": "../ZmqBindlib/MQBindlib.csproj",
       "msbuildProject": "../ZmqBindlib/MQBindlib.csproj"
@@ -2211,7 +2211,7 @@
   },
   "projectFileDependencyGroups": {
     "net7.0": [
-      "MQBindlib >= 1.0.1"
+      "MQBindlib >= 1.0.2"
     ]
   },
   "packageFolders": {
@@ -2278,7 +2278,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.401\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   }

@@ -34,15 +34,15 @@ namespace ConsoleApp1
             //  Rep();
             //  Req();
             // DDProxy();
-            //  TestClusterPUb();
-            // TestClusterSub();
-            //  TestClusterSub();
-            /// Sub();
-            // TestSub();
-            // pub();
+           //  TestClusterPUb();
+         // TestClusterSub();
+           
+           //  Sub();
+             TestSub();
+            pub();
             // TestPub();
             //  TestSub();
-            TestEhoServer();
+           // TestEhoServer();
             Console.WriteLine("Hello, World!");
             // TestCluster();
             // TestIP();
@@ -53,8 +53,8 @@ namespace ConsoleApp1
         static void TestSub()
         {
             ZmqSubscriberGroup zmqSubscriber=new ZmqSubscriberGroup();
-            zmqSubscriber.Address = "tcp://127.0.0.1:1234";
-            zmqSubscriber.IsDDS= true;//高可用
+            zmqSubscriber.Address = "tcp://192.168.237.55:6666";
+           // zmqSubscriber.IsDDS= true;//高可用
             zmqSubscriber.DataOffset = DataModel.Earliest;
            // zmqSubscriber.Indenty = "test";//订阅在不同分组
             zmqSubscriber.Subscribe("A");
@@ -68,18 +68,29 @@ namespace ConsoleApp1
 
         static void TestClusterSub()
         {
-            ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:1234";
-            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:5678";
-            ZmqDDSProxy.IsCluster = true;//高可用
-            ZmqDDSProxy.IsStorage = true;
-            ZmqDDSProxy.StartProxy(); //注意方法，启动和另外发布订阅方法不同
+            ZmqPullProxy.PubAddress = "tcp://192.168.237.55:6666";
+            ZmqPullProxy.SubAddress = "tcp://192.168.237.55:6667";
+            //ZmqDDSProxy.IsCluster = true;//高可用
+            // ZmqDDSProxy.IsStorage = true;
+            bool isret = false;
+            do
+            {
+                isret = ZmqPullProxy.Start(); //注意方法，启动和另外发布订阅方法不同
+                Thread.Sleep(1000);
+            }
+            while (!isret);
         }
         static void TestClusterPUb()
         {
-            ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:2222";
-            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:4444";
-            ZmqDDSProxy.IsCluster=true;
-            ZmqDDSProxy.Start();
+            ZmqDDSProxy.PubAddress = "tcp://192.168.237.55:6666";
+            ZmqDDSProxy.SubAddress = "tcp://192.168.237.55:6667";
+            // ZmqDDSProxy.IsCluster=true;
+            bool isRet = false;
+            do
+            {
+                isRet = ZmqDDSProxy.Start();
+                Thread.Sleep(1000);
+            } while (!isRet);
         }
 
         static void TestEhoServer()
@@ -281,8 +292,8 @@ namespace ConsoleApp1
         static void Sub()
         {
             ZmqSubscriber sub = new ZmqSubscriber();
-            sub.Address = new string[] { "tcp://127.0.0.1:1234" };
-            sub.IsDDS = true;//高可用启动
+            sub.Address = new string[] { "tcp://192.168.237.55:6666" };
+           // sub.IsDDS = true;//高可用启动
             sub.Subscribe("");
            // sub.ByteReceived += Sub_ByteReceived;
             sub.StringReceived += Sub_StringReceived;
@@ -301,9 +312,9 @@ namespace ConsoleApp1
         static void pub()
         {
             ZmqPublisher pub = new ZmqPublisher();
-            pub.Address = "tcp://127.0.0.1:5678";
+            pub.Address = "tcp://192.168.237.55:6667";
             pub.IsProxy = true; //是否使用中间代理
-            pub.IsDDS = true;//高可用启动
+           // pub.IsDDS = true;//高可用启动
             int num = 0;
             while (true)
             {
@@ -446,12 +457,12 @@ namespace ConsoleApp1
 
         static void TestGroup()
         {
-            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:5555";
-            ZmqDDSProxy.PubAddress= "tcp://127.0.0.1:6666";
-            ZmqDDSProxy.StartProxy();
-
+            ZmqPullProxy.SubAddress = "tcp://127.0.0.1:5555";
+            ZmqPullProxy.PubAddress= "tcp://127.0.0.1:6666";
+            ZmqPullProxy.Start();
+            Thread.Sleep(2000);
             Thread thread = new Thread(p => {
-                Thread.Sleep(20000);
+               // Thread.Sleep(20000);
                 ZmqSubscriberGroup zmqSubscriberGroup=new ZmqSubscriberGroup();
                 zmqSubscriberGroup.Address= "tcp://127.0.0.1:6666";
                 zmqSubscriberGroup.Subscribe("TopicA");
@@ -459,7 +470,7 @@ namespace ConsoleApp1
 
                 ZmqSubscriberGroup zmqSubscriberGroup1 = new ZmqSubscriberGroup();
                 zmqSubscriberGroup1.Address = "tcp://127.0.0.1:6666";
-                zmqSubscriberGroup1.Indenty = "Q";
+              //  zmqSubscriberGroup1.Indenty = "Q";
                 zmqSubscriberGroup1.Subscribe("TopicA");
                 zmqSubscriberGroup1.StringReceived += ZmqSubscriberGroup_StringReceived1;
                 Thread.Sleep(30000);
@@ -468,14 +479,14 @@ namespace ConsoleApp1
             thread.Start();
 
             Thread thread1 = new Thread(p => {
-
-               ZmqPublisher zmqPublisher = new ZmqPublisher();
+               
+                ZmqPublisher zmqPublisher = new ZmqPublisher();
                 zmqPublisher.IsProxy = true;
                 zmqPublisher.Address = "tcp://127.0.0.1:5555";
                 int num = 0;
                 while(true)
                 {
-                    Thread.Sleep(100);
+                   Thread.Sleep(10);
                     zmqPublisher.Publish("TopicA", "AAAAA"+num++);
                 }
             });

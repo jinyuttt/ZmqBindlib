@@ -26,5 +26,10 @@
         /// 存储数据
         /// </summary>
         public const string Storage = "Storage";
+
+        /// <summary>
+        /// 心跳主题，分组模式订阅
+        /// </summary>
+        public const string HeartbeatTopic = "HeartbeatTopic";
     }
 }
