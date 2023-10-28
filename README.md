@@ -104,8 +104,8 @@ zmq常用封装
             ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:7772";//客户端发布此地址
             ZmqDDSProxy.Start();
         }
-`````
-	
+        ``````````
+
 ## 中心高可用部署
 1.推荐方式
   使用IP漂移：
@@ -117,8 +117,9 @@ zmq常用封装
 2.使用封装
   该功能前提是可以使用广播，可以允许少量数据丢失；
   （1）请求返回模式
-      中心：
-`````
+      中心节点：
+
+       ```````````
 
           EhoServer eho = new EhoServer();
             eho.IsCluster = true;
@@ -128,22 +129,26 @@ zmq常用封装
             eho.StringReceived += EhoServer_StringReceived;
             eho.Start();
 
-````
-    客户端：与单个一致
+      `````````````
 
-    （2）订阅发布
+ 客户端：与单个一致
 
-    中心：
-````
+（2）订阅发布
+
+ 中心：
+
+`````````````
       ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:2222";
             ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:4444";
             ZmqDDSProxy.IsCluster=true;
          ZmqDDSProxy.Start();
-````
 
-    发布端：
+`````````````
 
- ````
+ 发布端：
+
+
+`````````````
             ZmqPublisher pub = new ZmqPublisher();
             pub.Address = "tcp://127.0.0.1:5678";
             pub.IsProxy = true; //是否使用中间代理
@@ -163,33 +168,35 @@ zmq常用封装
             }
 
 
-```
 
-            订阅端：
+`````````````
 
-````
+  订阅端：
+
+
+`````````````
               ZmqSubscriber sub = new ZmqSubscriber();
             sub.Address = new string[] { "tcp://127.0.0.1:1234" };
             sub.IsDDS = true;//高可用启动
             sub.Subscribe("");
            // sub.ByteReceived += Sub_ByteReceived;
             sub.StringReceived += Sub_StringReceived;
-```
-            对于发布订阅，中心何发布订阅端都需要启动高可用，会刷新地址
 
-            （3）负载均衡式订阅发布
-             该模式是仿照kafka功能的；
-             中心：
+`````````````
+  对于发布订阅，中心何发布订阅端都需要启动高可用，会刷新地址
+
+ （3）负载均衡式订阅发布
+    该模式是仿照kafka功能的；
+     中心：
 ```
-               ZmqDDSProxy.PubAddress = "tcp://127.0.0.1:2222";
-            ZmqDDSProxy.SubAddress = "tcp://127.0.0.1:4444";
-            ZmqDDSProxy.IsCluster = true;//高可用
-            ZmqDDSProxy.StartProxy(); //注意方法，启动和另外发布订阅方法不同
+               ZmqPullProxy.PubAddress = "tcp://127.0.0.1:2222";
+            ZmqPullProxy.SubAddress = "tcp://127.0.0.1:4444";
+            ZmqPullProxy.IsCluster = true;//高可用
+            ZmqPullProxy.Start(); //注意方法，启动和另外发布订阅方法不同
 
 ```
-            发布端：和前面一样
-
-            订阅端：
+ 发布端：和前面一样
+ 订阅端：
 ```
            ZmqSubscriberGroup zmqSubscriber=new ZmqSubscriberGroup();
             zmqSubscriber.Address = "tcp://127.0.0.1:1234";
@@ -198,7 +205,7 @@ zmq常用封装
             zmqSubscriber.Subscribe("A");
             zmqSubscriber.StringReceived += ZmqSubscriber_StringReceived;
 ```
-            (4)kafka封装
+(4)kafka封装
 ```
              KafkaPublisher kafkaPublisher = new KafkaPublisher();
                 int num = 0;
@@ -221,8 +228,7 @@ zmq常用封装
                 
                 });
 ```
-
-		说明
+说明
 		1.接收数据一端，定义了2个事件一个方法，顺序是ByteReceived、StringReceived、GetMsg<T>()方法。一旦前一个实现，后面就无效
         2.pull模式订阅增加了数据存储
 
