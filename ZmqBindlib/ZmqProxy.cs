@@ -16,9 +16,7 @@ namespace MQBindlib
         public static Dictionary<string,Proxy> dic=new Dictionary<string,Proxy>();
 
         public static Dictionary<string,bool> dic_ =new Dictionary<string, bool>();
-        //private static RouterSocket routerAllSocket = null;
-
-        //private static DealerSocket dealerAllSocket = null;
+       
 
         /// <summary>
         /// 启动代理

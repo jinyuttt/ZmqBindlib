@@ -3,14 +3,7 @@
 
 
 using Microsoft.Extensions.Logging;
-using System;
-/**
-* 命名空间: Hikari 
-* 类 名： Logger
-* CLR版本： 4.0.30319.42000
-* 版本 ：v1.0
-* Copyright (c) jinyu  
-*/
+
 
 namespace MQBindlib
 {

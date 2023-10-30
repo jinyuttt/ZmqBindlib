@@ -1,7 +1,6 @@
 ﻿using NetMQ;
 using NetMQ.Sockets;
 using System.Collections.Concurrent;
-using System.Diagnostics.Metrics;
 
 namespace MQBindlib
 {
@@ -12,6 +11,7 @@ namespace MQBindlib
     {
         SubscriberSocket subscriber = null;
         readonly BlockingCollection<InerTopicMessage> queue = new BlockingCollection<InerTopicMessage>();
+        private static readonly object _monitorLock = new object();
 
         /// <summary>
         /// 订阅地址
@@ -24,16 +24,16 @@ namespace MQBindlib
         public bool IsDDS { get; set; } = false;
 
         /// <summary>
-        /// 次优先，字符串
+        /// 次优先，字符串，首参数是客户端标识
         /// </summary>
-        public event Action<string,string> StringReceived;
+        public event Action<string,string,string> StringReceived;
 
 
 
         /// <summary>
-        /// 最优先，返回byte[]
+        /// 最优先，返回byte[],首参数是客户端标识
         /// </summary>
-        public event Action<string,byte[]> ByteReceived;
+        public event Action<string,string,byte[]> ByteReceived;
 
         private List<string> topics=new List<string>();
 
@@ -64,7 +64,7 @@ namespace MQBindlib
                 {
 
 
-                    Thread.Sleep(1000);
+                    Thread.Sleep(2000);
 
                     if (lstNode != null)
                     {
@@ -73,7 +73,7 @@ namespace MQBindlib
                         {
                             if (master.Address != Address[0] || DateTime.Now > fulshTime + m_deadNodeTimeout)
                             {
-
+                                Monitor.TryEnter(_monitorLock, 500);
                                 foreach (string tmp in topics)
                                 {
                                     //防止切换时异常，尤其是网络异常
@@ -92,8 +92,7 @@ namespace MQBindlib
                                             subscriber.Connect(tmp.Address);
                                             subscriber.Subscribe(ConstString.ReqCluster);
                                             Address[0] = tmp.Address;
-                                            Console.WriteLine("超时切换:" + tmp.Address);
-
+                                           
                                             foreach (string tp in topics)
                                             {
                                                 subscriber.Subscribe(tp);
@@ -115,20 +114,21 @@ namespace MQBindlib
                                     subscriber.Connect(master.Address);
                                     subscriber.Subscribe(ConstString.ReqCluster);
                                     Address[0] = master.Address;
-                                    Console.WriteLine("主从切换:" + master.Address);
-
+                                
                                     foreach (string tp in topics)
                                     {
                                         subscriber.Subscribe(tp);
                                     }
                                 }
 
-
+                                Monitor.Exit(_monitorLock);
                             }
                         }
                     }
                 }
             });
+            up.IsBackground = true;
+            up.Name = nameof(ZmqSubscriber);
             up.Start();
         }
        
@@ -137,19 +137,14 @@ namespace MQBindlib
             while (true)
             {
 
-                //var client = subscriber.ReceiveFrameString();
+                var client = subscriber.ReceiveFrameString();
                 var topic = subscriber.ReceiveFrameString();
-                //if(client!=null)
-                //{
-                //    Console.WriteLine(client);
-                //}
                 if(ConstString.ReqCluster ==topic)
                 {
                     string msg = subscriber.ReceiveFrameString();
                     List<ClusterNode> lst = Util.JSONDeserializeObject<List<ClusterNode>>(msg);
                     lstNode = lst;
                     fulshTime=DateTime.Now;
-                  
                     continue;
                 }
                 if(ConstString.PubPublisher ==topic)
@@ -160,17 +155,17 @@ namespace MQBindlib
                 if (ByteReceived!=null)
                 {
                     var data = subscriber.ReceiveFrameBytes();
-                    ByteReceived(topic, data);
+                    ByteReceived(client,topic, data);
                 }
                 if (StringReceived != null)
                 {
                     var msg = subscriber.ReceiveFrameString();
-                    StringReceived(topic, msg);
+                    StringReceived(client, topic, msg);
                 }
                 else
                 {
                     var msg = subscriber.ReceiveFrameString();
-                    queue.Add(new InerTopicMessage() { Topic = topic, Message = msg });
+                    queue.Add(new InerTopicMessage() { Topic = topic, Message = msg, PubClient=client });
                 }
             }
 
@@ -247,7 +242,7 @@ namespace MQBindlib
 
             T obj= Util.JSONDeserializeObject<T>(result.Message);
 
-            return new TopicMessage<T>() { Topic=result.Topic, Message = obj };
+            return new TopicMessage<T>() { Topic=result.Topic, Message = obj, PubClient=result.PubClient};
 
 
         }

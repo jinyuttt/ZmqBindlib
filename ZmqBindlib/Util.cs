@@ -1,27 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MQBindlib
 {
+
+    /// <summary>
+    /// 工具
+    /// </summary>
     public class Util
     {
      
+        /// <summary>
+        /// JSO序列化
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static string JSONSerializeObject<T>(T obj)
         {
             var json = System.Text.Json.JsonSerializer.Serialize(obj);
             return json;
         }
-
+        
+        /// <summary>
+        /// JSON反序列化
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
         public static T JSONDeserializeObject<T>(string json)
         {
             var obj = System.Text.Json.JsonSerializer.Deserialize<T>(json);
             return obj;
         }
+       
 
         /// <summary>
         /// 获取通讯

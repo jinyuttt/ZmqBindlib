@@ -22,17 +22,17 @@ namespace MQBindlib
         public static string? PubAddress { get; set; }
 
         /// <summary>
-        /// 是否是集群
+        /// 是否是高可用
         /// </summary>
         public static bool IsCluster { get; set; } = false;
 
         /// <summary>
-        /// 集群名称
+        /// 高可用名称
         /// </summary>
         public static string ClusterName { get; set; } = "PullProxy";
 
         /// <summary>
-        /// 集群ID
+        /// 高可用ID
         /// </summary>
         internal static string ClusterId { get; set; } = string.Empty;
 
@@ -43,7 +43,7 @@ namespace MQBindlib
 
         
         /// <summary>
-        /// 存储数据
+        /// 是否存储数据
         /// </summary>
         public static bool IsStorage { get; set; } = false;
 
@@ -52,7 +52,9 @@ namespace MQBindlib
         /// </summary>
         public static int StorageHours { get; set; } = 24;
 
-
+        /// <summary>
+        /// 分发线程最大量
+        /// </summary>
         public static int MaxThreadNum { get; set; } = 10;
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace MQBindlib
         /// <summary>
         /// 线程数
         /// </summary>
-        public static int processNum = 0;
+        private static int processNum = 0;
 
 
         private const string inprocAddress = "inproc://pullproxy";
@@ -181,13 +183,16 @@ namespace MQBindlib
                     {
                         Task.Factory.StartNew(() =>
                         {
-                            var off = (DateTime.Now.Ticks / 10000) - StorageHours * 60 * 60 * 1000;//按秒计算
-                            dbStorage.Remove(topic, off);//先触发移除数据
-                            var lst = dbStorage.GetMessage(topic);//获取数据
-                            foreach (var item in lst)
+                            if (dbStorage != null)
                             {
-                                //所有数据发送一次
-                                sock.Socket.SendMoreFrame(item.Topic).SendFrame(item.Message);
+                                var off = (DateTime.Now.Ticks / 10000) - StorageHours * 60 * 60 * 1000;//按秒计算
+                                dbStorage.Remove(topic, off);//先触发移除数据
+                                var lst = dbStorage.GetMessage(topic);//获取数据
+                                foreach (var item in lst)
+                                {
+                                    //所有数据发送一次
+                                    sock.Socket.SendMoreFrame(item.Topic).SendFrame(item.Message);
+                                }
                             }
                         });
 
@@ -208,6 +213,7 @@ namespace MQBindlib
                 subscriber.SubscribeToAnyTopic();//接收发布端所有数据
                 while (true)
                 {
+                    var client=  subscriber.ReceiveFrameString();
                     var topic = subscriber.ReceiveFrameString();
                     var data = subscriber.ReceiveFrameString();
                     if (ConstString.PubPublisher == topic)
@@ -218,7 +224,7 @@ namespace MQBindlib
                     }
 
                     //数据获取
-                    topicMessages.Enqueue(new InerTopicMessage() { Topic = topic, Message = data });
+                    topicMessages.Enqueue(new InerTopicMessage() { Topic = topic, Message = data, PubClient=client });
                     if (IsCluster)
                     {
                         if (!nodemaster)
@@ -234,7 +240,7 @@ namespace MQBindlib
                         if (nodemaster)
                         {
                             //节点见互传数据
-                            Cluster.bus.Publish(ConstString.Storage, new InerTopicMessage() { Topic = topic, Message = data });
+                            Cluster.bus.Publish(ConstString.Storage, new InerTopicMessage() { Topic = topic, Message = data, PubClient=client });
 
                         }
                     }
@@ -271,7 +277,7 @@ namespace MQBindlib
             zmqBus.Subscribe(ConstString.Storage);
             //中心之间
             zmqBus.StringReceived += ZmqBus_StringReceived;
-            Thread monitor = new Thread(p =>
+            Thread monitor = new Thread(() =>
             {
                 ZmqBus bus = new ZmqBus();
                 while (true)
@@ -295,9 +301,11 @@ namespace MQBindlib
                     bus.Publish(ConstString.PubCluster, rsp);
                 }
             });
+            monitor.IsBackground = true;
+            monitor.Name = "monitor";
             monitor.Start();
 
-            Thread timer = new Thread(p =>
+            Thread timer = new Thread(() =>
             {
                 //中心节点定时向订阅方发布中心节点（通过发布方式），不管是pull还是sub
                 PublisherSocket publisherSocket = new PublisherSocket();
@@ -307,7 +315,7 @@ namespace MQBindlib
                     Thread.Sleep(2000);
                     var lst = Cluster.GetNodes(ClusterName, NodeType.Poll);
                     var msg = Util.JSONSerializeObject(lst);
-                    publisherSocket.SendMoreFrame(ConstString.ReqCluster).SendFrame(msg);
+                    publisherSocket.SendMoreFrame("proxy").SendMoreFrame(ConstString.ReqCluster).SendFrame(msg);
 
                 }
 
@@ -354,8 +362,6 @@ namespace MQBindlib
 
                         }
                     }
-
-
                 }
 
             });
@@ -370,6 +376,7 @@ namespace MQBindlib
                 subscriber.Subscribe(ConstString.PubPublisher);
                 while (true)
                 {
+                    var client= subscriber.ReceiveFrameString();
                     var topic = subscriber.ReceiveFrameString();
                     var msg = subscriber.ReceiveFrameString();
                     Cluster.AddRsp(msg);
@@ -453,7 +460,10 @@ namespace MQBindlib
             return keyNode;
         }
 
-
+        /// <summary>
+        /// 分发数据
+        /// </summary>
+        /// <param name="obj"></param>
         private static void Pack(Object obj)
         {
             while (true)
@@ -489,6 +499,7 @@ namespace MQBindlib
 
                 while (true)
                 {
+                    //超过数据量并且没有超过线程数量，启动线程分发
                     if(topicMessages.Count>MaxPackNum&&processNum<MaxThreadNum)
                     {
                         Interlocked.Increment(ref processNum);
@@ -497,13 +508,11 @@ namespace MQBindlib
                     }
                     if (topicMessages.TryDequeue(out var msg))
                     {
-
-
                         foreach (var kv in dic)
                         {
                             if (kv.Key.StartsWith(msg.Topic))
                             {
-                                //  kv.Value.Socket.SendMoreFrame(msg.Topic).SendFrame(msg.Message);
+                                kv.Value.Socket.TrySendFrame(TimeSpan.FromSeconds(1), msg.PubClient, true);
                                 kv.Value.Socket.TrySendFrame(TimeSpan.FromSeconds(1), msg.Topic,true);
                                 kv.Value.Socket.TrySendFrame(TimeSpan.FromSeconds(1), msg.Message, false);
 
@@ -527,7 +536,7 @@ namespace MQBindlib
     /// <summary>
     /// 
     /// </summary>
-    public class KeyNode
+    internal class KeyNode
     {
         /// <summary>
         ///主题
@@ -544,7 +553,9 @@ namespace MQBindlib
         /// </summary>
         public PushSocket Socket { get; set; }
 
-
+        /// <summary>
+        /// 订阅地址
+        /// </summary>
         public string Address { get; set; }
     }
 }

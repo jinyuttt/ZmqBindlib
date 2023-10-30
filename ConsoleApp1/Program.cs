@@ -38,8 +38,8 @@ namespace ConsoleApp1
          // TestClusterSub();
            
            //  Sub();
-             TestSub();
-            pub();
+           //  TestSub();
+          //  pub();
             // TestPub();
             //  TestSub();
            // TestEhoServer();
@@ -61,7 +61,7 @@ namespace ConsoleApp1
             zmqSubscriber.StringReceived += ZmqSubscriber_StringReceived;
         }
 
-        private static void ZmqSubscriber_StringReceived(string arg1, string arg2)
+        private static void ZmqSubscriber_StringReceived(string ars,string arg1, string arg2)
         {
            Console.WriteLine(arg2 + " " + arg1);
         }
@@ -175,7 +175,7 @@ namespace ConsoleApp1
            
             ZmqRequest request = new ZmqRequest();
             request.RemoteAddress = localaddes;
-            request.Client = "A";
+            request.ClientFlage = "A";
             int num = 0;
             while (true)
             {
@@ -198,7 +198,7 @@ namespace ConsoleApp1
 
             ZmqRequest request = new ZmqRequest();
             request.RemoteAddress = localaddes;
-            request.Client = "B";
+            request.ClientFlage = "B";
             int num = 0;
             while (true)
             {
@@ -299,7 +299,7 @@ namespace ConsoleApp1
             sub.StringReceived += Sub_StringReceived;
         }
 
-        private static void Sub_StringReceived(string arg1, string arg2)
+        private static void Sub_StringReceived(string ars, string arg1, string arg2)
         {
             Console.WriteLine(arg2);
         }
@@ -494,12 +494,12 @@ namespace ConsoleApp1
 
         }
 
-        private static void ZmqSubscriberGroup_StringReceived1(string arg1, string arg2)
+        private static void ZmqSubscriberGroup_StringReceived1(string ars, string arg1, string arg2)
         {
             Console.WriteLine("B:"+arg2);
         }
 
-        private static void ZmqSubscriberGroup_StringReceived(string arg1, string arg2)
+        private static void ZmqSubscriberGroup_StringReceived(string ars, string arg1, string arg2)
         {
             Console.WriteLine("A:"+arg2);
         }

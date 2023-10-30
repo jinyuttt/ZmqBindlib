@@ -20,17 +20,17 @@ namespace MQBindlib
         public static  string? PubAddress { get; set; }
 
         /// <summary>
-        /// 是否是集群
+        /// 是否是高可用
         /// </summary>
         public static bool IsCluster { get; set; } = false;
 
         /// <summary>
-        /// 集群名称
+        /// 高可用名称
         /// </summary>
         public static string ClusterName { get; set; } = "DDSProxy";
 
         /// <summary>
-        /// 集群ID
+        /// 高可用ID
         /// </summary>
         internal static string ClusterId { get; set; } = string.Empty;
 
@@ -40,20 +40,11 @@ namespace MQBindlib
         public static bool IsMaster { get; set; } = false;
 
 
-        public static bool  nodemaster=false;
-
-      
-
-      
-
-       
-
-      
+        public static bool nodemaster = false;
 
         private static ManualResetEventSlim eventSlim = new ManualResetEventSlim();
-        private static ManualResetEventSlim  resetEventSlim = new ManualResetEventSlim();
         private static bool isSucess = false;
-        private static bool isPullSucess = false;
+       
 
 
 
@@ -101,7 +92,7 @@ namespace MQBindlib
         
 
         /// <summary>
-        /// 集群处理
+        /// 高可用处理
         /// </summary>
         private static void MasterProxy()
         {
@@ -148,7 +139,7 @@ namespace MQBindlib
             });
             monitor.Start();
 
-            Thread timer = new Thread(p =>
+            Thread timer = new Thread(() =>
             {
                 //中心节点定时向订阅方发布中心节点（通过发布方式），不管是pull还是sub
                 PublisherSocket publisherSocket = new PublisherSocket();

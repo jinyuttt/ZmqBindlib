@@ -10,6 +10,8 @@ namespace MQBindlib
     {
         PublisherSocket publisherSocket = null;
         ResponseSocket rsp = null;
+        private static readonly object _monitorLock = new object();
+
         /// <summary>
         /// 本地地址
         /// </summary>
@@ -28,13 +30,16 @@ namespace MQBindlib
         //有主从
         public bool IsDDS { get; set; }=false;
 
+        List<ClusterNode> lstNode = null;
 
-        
-
-        List<ClusterNode> lstNode = new List<ClusterNode>();
-
+        /// <summary>
+        /// 中心刷新
+        /// </summary>
         DateTime fulshTime = DateTime.Now;
 
+        /// <summary>
+        /// 超时时间
+        /// </summary>
         private readonly TimeSpan m_deadNodeTimeout = TimeSpan.FromSeconds(10);
 
         public string LocalIP { get; set; }="*";
@@ -63,8 +68,9 @@ namespace MQBindlib
                 m_localIP=Util.GetLocalIP();
             }
             
+            //接收中心地址
          
-            Thread rc = new Thread(p =>
+            Thread rc = new Thread(() =>
             {
                 while(true)
                 {
@@ -83,10 +89,11 @@ namespace MQBindlib
                
                 while (true)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(2000);
                     string addr = string.Format("tcp://{0}:{1}",m_localIP,LocalPort);
                     try
                     {
+                        //发送本地接收地址
                         publisherSocket.SendMoreFrame(ConstString.PubPublisher).SendFrame(addr);
                     }
                     catch { };
@@ -97,7 +104,7 @@ namespace MQBindlib
                         {
                             if (master.SubAddess != Address || DateTime.Now > fulshTime + m_deadNodeTimeout)
                             {
-
+                                Monitor.TryEnter(_monitorLock,500);
                                 try
                                 {
                                     publisherSocket.Disconnect(Address);
@@ -112,7 +119,7 @@ namespace MQBindlib
                                         //没有新节点理论上一致，先切换
                                         Address = tmp.SubAddess;
                                         publisherSocket.Connect(Address);
-                                        Console.WriteLine("pub切换:" + Address);
+                                       
                                     }
                                     catch(Exception ex)
                                     {
@@ -126,9 +133,10 @@ namespace MQBindlib
                                   
                                     Address = master.SubAddess;
                                     publisherSocket.Connect(Address);
-                                    Console.WriteLine("pub切换:" + Address);
+                                   
                                 }
 
+                                Monitor.Exit(_monitorLock);
 
                             }
                         }
@@ -160,7 +168,6 @@ namespace MQBindlib
                     publisherSocket.Connect(Address);
                     if (IsDDS)
                     {
-
                         Update();
                     }
                 }
@@ -170,11 +177,9 @@ namespace MQBindlib
                 }
             }
             var msg = Util.JSONSerializeObject(message);
-
-            publisherSocket.SendMoreFrame(topic).SendFrame(msg);
-
-
-
+            Monitor.TryEnter(_monitorLock,100);
+            publisherSocket.SendMoreFrame(PubClient).SendMoreFrame(topic).SendFrame(msg);
+            Monitor.Exit(_monitorLock);
         }
 
     }

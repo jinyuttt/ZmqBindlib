@@ -12,19 +12,19 @@ namespace MQBindlib
         PullSocket  subscriber = null;
         readonly BlockingCollection<InerTopicMessage> queue = new BlockingCollection<InerTopicMessage>();
 
-       
+      
 
         /// <summary>
         /// 次优先，字符串
         /// </summary>
-        public event Action<string, string> StringReceived;
+        public event Action<string, string,string> StringReceived;
 
 
 
         /// <summary>
         /// 最优先，返回byte[]
         /// </summary>
-        public event Action<string, byte[]> ByteReceived;
+        public event Action<string,string, byte[]> ByteReceived;
 
         /// <summary>
         /// 订阅地址
@@ -85,6 +85,7 @@ namespace MQBindlib
                         {
                             if (master.Address != Address || DateTime.Now > fulshTime + m_deadNodeTimeout)
                             {
+                              
                                 try
                                 {
                                     subscriber.Disconnect(Address);
@@ -126,8 +127,7 @@ namespace MQBindlib
                                         this.Subscribe(tp);
                                     }
                                 }
-
-
+                              
                             }
                         }
                     }
@@ -169,6 +169,7 @@ namespace MQBindlib
 
                         try
                         {
+                            var client = subscriber.ReceiveFrameString();
                             var topic = subscriber.ReceiveFrameString();
                             dataFlush=DateTime.Now;
                             if (ConstString.ReqCluster == topic)
@@ -184,19 +185,19 @@ namespace MQBindlib
                             {
                                 var data = subscriber.ReceiveFrameBytes();
                               
-                                ByteReceived(topic, data);
+                                ByteReceived(client,topic, data);
                             }
                             if (StringReceived != null)
                             {
                                 var msg = subscriber.ReceiveFrameString();
                               
-                                StringReceived(topic, msg);
+                                StringReceived(client,topic, msg);
                             }
                             else
                             {
                                 var msg = subscriber.ReceiveFrameString();
                                
-                                queue.Add(new InerTopicMessage() { Topic = topic, Message = msg });
+                                queue.Add(new InerTopicMessage() { Topic = topic, Message = msg, PubClient=client });
                             }
                         }
                         catch(Exception ex) {
@@ -337,6 +338,9 @@ namespace MQBindlib
             }
         }
 
+       /// <summary>
+       /// 关闭
+       /// </summary>
         public void Close()
         {
             IsConnected=false;

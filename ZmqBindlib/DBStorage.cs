@@ -11,18 +11,18 @@ namespace MQBindlib
     {
         LiteDatabase db = null;
 
-        BlockingCollection<InerTopicMessage> messages = new BlockingCollection<InerTopicMessage>();
+        readonly BlockingCollection<InerTopicMessage> messages = new BlockingCollection<InerTopicMessage>();
 
         public DBStorage()
         {
-             db = new LiteDatabase(@"zmqbindlib.db");
-            start();
+            db = new LiteDatabase(@"zmqbindlib.db");
+            Start();
         }
 
         /// <summary>
         /// 启动存储
         /// </summary>
-        private void start()
+        private void Start()
         {
             Task.Factory.StartNew(() =>
             {
@@ -42,7 +42,7 @@ namespace MQBindlib
         /// <param name="value"></param>
         public void Add(string key, string value)
         {
-            messages.Add(new InerTopicMessage() { Topic = key, Message = value, DateValue = System.DateTime.Now.Ticks });
+            messages.Add(new InerTopicMessage() { Topic = key, Message = value, DateValue = DateTime.Now.Ticks });
         }
 
 

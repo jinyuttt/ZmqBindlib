@@ -3,7 +3,7 @@
     internal class ClusterNode
     {
         /// <summary>
-        /// 集群名称
+        /// 高可用名称
         /// </summary>
         public string Name {  get; set; }=string.Empty;
 

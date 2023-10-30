@@ -59,7 +59,7 @@ namespace MQBindlib
         /// <summary>
         /// 记录启动个数
         /// </summary>
-      private  int rspNum = 0;
+        private  int rspNum = 0;
 
         
        
@@ -86,18 +86,18 @@ namespace MQBindlib
         public bool IsEmptyReturn { get; set; }= false;
 
         /// <summary>
-        /// 是否是集群
+        /// 是否是高可用
         /// </summary>
         public  bool IsCluster { get; set; } = false;
 
         /// <summary>
-        /// 集群名称
+        /// 高可用名称
         /// </summary>
         public string ClusterName { get; set; } = "ehoserver";
 
 
         /// <summary>
-        /// 集群ID
+        /// 高可用ID
         /// </summary>
         public string ClusterId { get; set; } = string.Empty;
 
@@ -146,7 +146,7 @@ namespace MQBindlib
             int ret = -1;
             do
             {
-                 ret = ZmqProxy.IsSucess(serverid);
+               ret = ZmqProxy.IsSucess(serverid);
             }
             while (ret == -1);
             Logger.Singleton.Info(string.Format("代理启动：RouterAddress:{0},DealerAddress:{1}", RouterAddress, DealerAddress));
@@ -184,7 +184,7 @@ namespace MQBindlib
                 IsClusterMaster = IsClusterMaster,
             };
 
-            zmqBus.Subscribe(ConstString.ReqCluster);
+            zmqBus.Subscribe(ConstString.RspCluster);
             zmqBus.Subscribe(ConstString.UpdateCluster);
             zmqBus.StringReceived += ZmqBus_StringReceived;
 
@@ -195,7 +195,7 @@ namespace MQBindlib
                 while (IsRun)
                 {
                     Thread.Sleep(5000);
-                    tmp.Publish(ConstString.ReqCluster, node);
+                    tmp.Publish(ConstString.RspCluster, node);
                 }
                 //退出后注销
                 zmqBus.StringReceived -= ZmqBus_StringReceived;
@@ -208,7 +208,7 @@ namespace MQBindlib
 
         private void ZmqBus_StringReceived(string arg1, string arg2)
         {
-            if (arg1 == ConstString.ReqCluster)
+            if (arg1 == ConstString.RspCluster)
             {
                 var obj = Util.JSONDeserializeObject<ClusterNode>(arg2);
                 if (obj != null && obj.NodeType == NodeType.Request)
@@ -279,7 +279,6 @@ namespace MQBindlib
                             rsp.Disconnect(DealerAddress);
                             rsp.Close();
                             rsp.Dispose();
-
                         }
                     }
                     //检查缓存
@@ -311,7 +310,6 @@ namespace MQBindlib
                         dicSocket[key] = server;//存储到使用
                         lstSockets.Remove(server);//空闲中移除
                         Check();//启动预留
-
                         if (ByteReceived != null)
                         {
                             var bytes = server.ReceiveFrameBytes();
@@ -324,7 +322,7 @@ namespace MQBindlib
                                     continue;
                                 }
                             }
-                            var rsp = new RspSocket<byte[]> { Message = bytes, responseSocket = server, key = key, ehoServer = this, Client = client };
+                            var rsp = new RspSocket<byte[]> { Message = bytes, responseSocket = server, key = key, ehoServer = this, ClientFlage = client };
 
                             ByteReceived(this, rsp);
 
@@ -336,7 +334,7 @@ namespace MQBindlib
                             {
                                 continue;
                             }
-                            var rsp = new RspSocket<string> { Message = msg, responseSocket = server, key = key, ehoServer = this, Client = client };
+                            var rsp = new RspSocket<string> { Message = msg, responseSocket = server, key = key, ehoServer = this, ClientFlage = client };
 
                             StringReceived(this, rsp);
                         }
@@ -354,7 +352,7 @@ namespace MQBindlib
                                 {
                                     continue;
                                 }
-                                var rsp = new RspSocket<string>() { responseSocket = server, Message = msg, key = key, Client = client };
+                                var rsp = new RspSocket<string>() { responseSocket = server, Message = msg, key = key, ClientFlage = client };
                                 dicManualResetEvent[key] = resetEventSlim;
                                 queue.Add(rsp);
                                 if (!IsEmptyReturn)
@@ -424,7 +422,7 @@ namespace MQBindlib
         {
             RspSocket<string> result = queue.Take();
             T obj= Util.JSONDeserializeObject<T>(result.Message);
-            return new RspSocket<T>() { Message = obj,responseSocket=result.responseSocket, ehoServer = this, key=result.key, Client=result.Client };
+            return new RspSocket<T>() { Message = obj,responseSocket=result.responseSocket, ehoServer = this, key=result.key, ClientFlage=result.ClientFlage };
         }
 
         /// <summary>

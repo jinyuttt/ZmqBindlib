@@ -116,7 +116,7 @@ namespace MQBindlib
         /// <param name="dic"></param>
         private  static void Update(Dictionary<string,NodeType> dic)
         {
-            //通知集群；
+            //通知高可用；
             lock (clusters)
             {
                 foreach (var key in dic.Keys)
@@ -128,7 +128,7 @@ namespace MQBindlib
                         {
                             var node = lst.OrderByDescending(p => p.Id).First();
                             node.IsMaster = true;
-                            Console.WriteLine($"集群:{node.Name},节点:{node.Id},地址:{node.Address}转Master");
+                            Console.WriteLine($"高可用:{node.Name},节点:{node.Id},地址:{node.Address}转Master");
                             if (bus != null)
                             {
                                 bus.Publish(ConstString.UpdateCluster, node.Id);

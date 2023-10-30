@@ -10,6 +10,7 @@ namespace MQBindlib
     /// </summary>
     public  class ZmqRequest
     {
+        private static readonly object _monitorLock = new object();
         /// <summary>
         /// 远端地址
         /// </summary>
@@ -23,14 +24,15 @@ namespace MQBindlib
         /// <summary>
         /// 标识
         /// </summary>
-        public string? Client { get; set; } = string.Empty;
+        public string? ClientFlage { get; set; } = string.Empty;
 
         private bool isRun = true;
 
     
-
-        public bool IsCluster { get; set; }=
-            false;
+        /// <summary>
+        /// 是否有高可用部署
+        /// </summary>
+        public bool IsCluster { get; set; }= false;
 
         List<ClusterNode> clusterNodes = new List<ClusterNode>();
 
@@ -40,7 +42,7 @@ namespace MQBindlib
 
 
         /// <summary>
-        /// 获取集群数据
+        /// 获取高可用数据
         /// </summary>
         private void RequestCluster(RequestSocket  socket=null)
         {
@@ -55,7 +57,7 @@ namespace MQBindlib
                 try
                 {
                     var client = new RequestSocket(RemoteAddress);
-                    client.SendMoreFrame(Client).SendFrame(ConstString.ReqCluster);
+                    client.SendMoreFrame(ClientFlage).SendFrame(ConstString.ReqCluster);
                     string msg = client.ReceiveFrameString();
                     List<ClusterNode> lst = Util.JSONDeserializeObject<List<ClusterNode>>(msg);
                     if (lst != null)
@@ -96,7 +98,12 @@ namespace MQBindlib
                 }
 
                 dic.Clear();
-
+                Monitor.TryEnter(_monitorLock, 500);
+                if (requestSocket != null)
+                {
+                    requestSocket.Connect(RemoteAddress);
+                }
+                Monitor.Exit(_monitorLock);
             }
         
         }
@@ -114,8 +121,7 @@ namespace MQBindlib
                 dic[Thread.CurrentThread.ManagedThreadId] = client;
                 RequestCluster(client);
                 client.Connect(RemoteAddress);
-                client.SendMoreFrame(Client).SendFrame(msg);
-              
+                client.SendMoreFrame(ClientFlage).SendFrame(msg);
                 var ret= client.ReceiveFrameString();
                 dic.Remove(Thread.CurrentThread.ManagedThreadId,out var r);  
                 return ret;
@@ -130,12 +136,11 @@ namespace MQBindlib
         /// <returns></returns>
         public byte[] Request(byte[] msg)
         {
-            RequestCluster();
+           
             using (var client = new RequestSocket(RemoteAddress))  // connect
             {
-               // client.Options.Identity = System.Text.Encoding.UTF8.GetBytes(Client);
-                // Send a message from the client socket
-                client.SendMoreFrame(Client).SendFrame(msg);
+               
+                client.SendMoreFrame(ClientFlage).SendFrame(msg);
                 return client.ReceiveFrameBytes();
 
             }
@@ -150,12 +155,12 @@ namespace MQBindlib
         /// <returns></returns>
         public T Request<R,T>(R  msg)
         {
-            RequestCluster();
+         
             using (var client = new RequestSocket(RemoteAddress))  // connect
             {
               
                 var  obj= Util.JSONSerializeObject(msg);
-                client.SendMoreFrame(Client).SendFrame(obj);
+                client.SendMoreFrame(ClientFlage).SendFrame(obj);
                 var rsp= client.ReceiveFrameString();
                 if(typeof(T) == typeof(string))
                 {
@@ -189,23 +194,28 @@ namespace MQBindlib
                 {
                     while(isRun)
                     {
-                        Thread.Sleep(1000);
+                        Thread.Sleep(5000);
                         RequestCluster();
 
                     }
                 });
+                cluster.IsBackground = true;
+                cluster.Name = "requestSocketUp";
                 cluster.Start();
               
             }
 
             var obj = Util.JSONSerializeObject(msg);
-            requestSocket.SendMoreFrame(Client).SendFrame(obj);
+            Monitor.TryEnter(_monitorLock, 500);
+            requestSocket.SendMoreFrame(ClientFlage).SendFrame(obj);
             var rsp = requestSocket.ReceiveFrameString();
+            Monitor.Exit(_monitorLock);
             if (typeof(T) == typeof(string))
             {
                 return (T)Convert.ChangeType(rsp, typeof(T));
             }
             var result = Util.JSONDeserializeObject<T>(rsp);
+
             return result;
         }
 

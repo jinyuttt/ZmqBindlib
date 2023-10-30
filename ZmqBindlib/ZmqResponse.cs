@@ -16,48 +16,50 @@ namespace MQBindlib
         public string LocalAddress { get; set; } = String.Empty;
         ResponseSocket server = null;
 
-        BlockingCollection<string> queue = new();
-
-
-       
-        /// <summary>
-        /// 次优先，字符串
-        /// </summary>
-        public event EventHandler<string> StringReceived;
+        BlockingCollection<RequestMsg> queue = new();
 
 
 
         /// <summary>
-        /// 最优先，返回byte[]
+        /// 次优先，字符串，第一个参数客户端标识
         /// </summary>
-        public event EventHandler<byte[]> ByteReceived;
+        public event Action<string,string,ZmqResponse> StringReceived;
 
+
+
+        /// <summary>
+        /// 最优先，返回byte[],第一个参数客户端标识
+        /// </summary>
+        public event Action<string,byte[],ZmqResponse> ByteReceived;
+
+
+
+        /// <summary>
+        /// 接收数据
+        /// </summary>
         private void Recvice()
         {
             while (true)
             {
-              string client=server.ReceiveFrameString();
-                if (client != null)
-                {
-                    Console.WriteLine(client);
-                }
+               string client=server.ReceiveFrameString();
+               
                 if (ByteReceived != null)
                 {
                     var bytes = server.ReceiveFrameBytes();
                   
                    
-                    ByteReceived(this, bytes);
+                    ByteReceived(client, bytes,this);
                 }
                 else if (StringReceived != null)
                 {
                     var msg = server.ReceiveFrameString();
              
-                   StringReceived(this, msg);
+                   StringReceived(client,msg,this);
                 }
                 else
                 {
                     var msg = server.ReceiveFrameString();
-                    queue.Add(msg);
+                    queue.Add(new RequestMsg() { ClientFlage=client, Msg=msg});
                 }
 
 
@@ -67,6 +69,9 @@ namespace MQBindlib
      
        
        
+        /// <summary>
+        /// 开始
+        /// </summary>
         public void Start()
         {
             Thread rec= new Thread(Recvice);
@@ -77,6 +82,9 @@ namespace MQBindlib
             rec.Start();    
         }
 
+        /// <summary>
+        /// 停止
+        /// </summary>
         public void Stop()
         {
             server.Close();
@@ -87,17 +95,31 @@ namespace MQBindlib
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T GetMsg<T>()
+        public T GetMsg<T>(out string clientFlage)
         {
-            string result = queue.Take();
-            return Util.JSONDeserializeObject<T>(result);
+            var result = queue.Take();
+            clientFlage = result.ClientFlage;
+            return Util.JSONDeserializeObject<T>(result.Msg);
         }
 
+        /// <summary>
+        /// 回复结果
+        /// </summary>
+        /// <param name="msg"></param>
         public void Response(string msg)
         {
             server.SendFrame(msg);
         }
        
+        
+    }
+    class RequestMsg
+    {
+        public RequestMsg() { }
+
+        public string Msg { get; set; }
+
+        public string ClientFlage { get; set; }
     }
 }
 

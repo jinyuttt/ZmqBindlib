@@ -1,13 +1,14 @@
 ﻿using Confluent.Kafka;
+using System.Text;
 
 namespace MQBindlib
 {
     /// <summary>
-    /// 
+    /// kafka订阅
     /// </summary>
     public class KafkaSubscriber
     {
-        private IConsumer<string, string> _consumer;
+      
         private IConsumer<string, byte[]> m_consumer;
         public KafkaSubscriber(string server = null)
         {
@@ -21,8 +22,8 @@ namespace MQBindlib
                 BootstrapServers = server,
                 AutoOffsetReset = AutoOffsetReset.Latest
             };
-            _consumer = new ConsumerBuilder<string, string>(config).Build();
-          //  m_consumer=new ConsumerBuilder<string, byte[]>(config).Build();
+          
+           m_consumer=new ConsumerBuilder<string, byte[]>(config).Build();
           
             
         }
@@ -34,12 +35,20 @@ namespace MQBindlib
                 while (true)
                
                 {
-                    var consumerResult = _consumer.Consume(TimeSpan.FromSeconds(2));
+                    var consumerResult = m_consumer.Consume(TimeSpan.FromSeconds(2));
                     if (consumerResult==null)
                     {
                         continue;
                     }
-                    action?.Invoke(consumerResult);
+                    ConsumeResult<string, string> result = new ConsumeResult<string, string>();
+                    result.TopicPartitionOffset = consumerResult.TopicPartitionOffset;
+                    Message<string, string> msg = new Message<string, string>();
+                    msg.Key = consumerResult.Key;
+                    msg.Value = Encoding.UTF8.GetString(consumerResult.Value);
+                    msg.Headers = consumerResult.Headers;
+                    msg.Timestamp = consumerResult.Timestamp;
+                    result.Message =msg;
+                    action?.Invoke(result);
                 }
             });
         }
@@ -53,8 +62,8 @@ namespace MQBindlib
 
         public void Subscriber(string topic)
         {
-            _consumer.Subscribe(topic);
-          //  m_consumer.Subscribe(topic);
+          
+           m_consumer.Subscribe(topic);
         }
 
     }

@@ -14,12 +14,16 @@ namespace MQBindlib
         internal string key=string.Empty;
 
         internal EhoServer ehoServer = null;
+
+        /// <summary>
+        /// 消息
+        /// </summary>
         public required T Message { get; set; }
 
         /// <summary>
         /// 客户端
         /// </summary>
-        public string Client { get; set; }=string.Empty;
+        public string ClientFlage { get; set; }=string.Empty;
 
         /// <summary>
         /// 回复字符串

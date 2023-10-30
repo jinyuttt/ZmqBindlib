@@ -3,6 +3,10 @@ using System.Collections.Concurrent;
 
 namespace MQBindlib
 {
+
+    /// <summary>
+    /// 无中心广播
+    /// </summary>
     public class ZmqBus
     {
          BlockingCollection<InerTopicMessage> queue = null;
@@ -20,8 +24,15 @@ namespace MQBindlib
 
         private object _lock = new object();
 
+        /// <summary>
+        /// 广播端口
+        /// </summary>
         public int Port { get; set; } = 5566;
+
+
         private Bus? bus;
+
+
         private bool isNeed = true;
 
         private bool isNeedTg = true;
@@ -39,6 +50,9 @@ namespace MQBindlib
            
         }
 
+        /// <summary>
+        /// 接收数据
+        /// </summary>
         private void Recvice()
         {
             lock (_lock)
@@ -48,7 +62,7 @@ namespace MQBindlib
                     return;
                 }
                 queue = new BlockingCollection<InerTopicMessage>();
-                Thread thread = new Thread(p =>
+                Thread thread = new Thread(() =>
                 {
 
                     while (true)
@@ -78,6 +92,13 @@ namespace MQBindlib
                 thread.Start();
             }
         }
+
+        /// <summary>
+        /// 发布数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="topic"></param>
+        /// <param name="msg"></param>
         public void Publish<T>(string topic, T msg)
         {
             if (isNeed)
@@ -89,6 +110,10 @@ namespace MQBindlib
             bus.m_actor.SendMoreFrame(Bus.PublishCommand).SendMoreFrame(topic).SendFrame(p);
         }
 
+        /// <summary>
+        /// 订阅主题
+        /// </summary>
+        /// <param name="topic"></param>
        public void Subscribe(string topic)
         {
             if (isNeed)
